@@ -24,15 +24,16 @@ jobs:
         run: |
           set -euo pipefail
           BASE_URL="https://antojo-bio.vercel.app"
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 36); do
             if curl -fsS "$BASE_URL/api/health" > /tmp/health.json; then
-              if grep -q '"notionConfigured":true' /tmp/health.json; then
+              if grep -q '"ready":true' /tmp/health.json; then
+                curl -fsS "$BASE_URL/api/config" > /tmp/config.json || true
                 exit 0
               fi
             fi
             sleep 5
           done
-          echo "Production health check did not become ready"
+          echo "Production is deployed, but the operational backend is not ready"
           cat /tmp/health.json 2>/dev/null || true
           exit 1
 
@@ -53,6 +54,7 @@ jobs:
           TODAY=$(date -u +%Y%m%d)
           CODE=$(printf '%04X' "$((RANDOM % 65536))")
           FOLIO="ANT-${TODAY}-${CODE}"
+          echo "$FOLIO" > /tmp/folio.txt
           REQUIRED=$(date -u -d '+5 days' +%F)
           cat > /tmp/payload.json <<JSON
           {
@@ -96,16 +98,20 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import json, os, pathlib, datetime
-          def read(path):
+          import json, pathlib, datetime
+          def read_json(path):
               try: return json.loads(pathlib.Path(path).read_text())
               except Exception: return None
+          def read_text(path):
+              try: return pathlib.Path(path).read_text().strip()
+              except Exception: return ''
           result={
               "checkedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
               "productionUrl": "https://antojo-bio.vercel.app",
-              "health": read('/tmp/health.json'),
-              "registration": read('/tmp/register.json'),
-              "folio": os.environ.get('FOLIO','')
+              "health": read_json('/tmp/health.json'),
+              "maps": read_json('/tmp/config.json'),
+              "registration": read_json('/tmp/register.json'),
+              "folio": read_text('/tmp/folio.txt')
           }
           pathlib.Path('smoke-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
           PY
