@@ -1,0 +1,1 @@
+module.exports=function handler(req,res){res.statusCode=200;res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','public, max-age=300');res.end(JSON.stringify({googleMapsEnabled:Boolean(process.env.GOOGLE_MAPS_BROWSER_KEY),googleMapsKey:process.env.GOOGLE_MAPS_BROWSER_KEY||''}))};
