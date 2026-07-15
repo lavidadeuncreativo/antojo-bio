@@ -1,20 +1,26 @@
 {
-  "checkedAt": "2026-07-15T22:57:18.439631+00:00",
+  "checkedAt": "2026-07-15T22:57:35.590715+00:00",
   "productionUrl": "https://antojo-bio.vercel.app",
   "health": {
     "ok": true,
-    "ready": false,
+    "ready": true,
     "service": "antojo-webapp",
     "notionConfigured": true,
-    "notionDataSourceAccessible": false,
-    "notionStatus": "permission_required",
+    "notionDataSourceAccessible": true,
+    "notionStatus": "connected",
     "googleMapsConfigured": false,
-    "timestamp": "2026-07-15T22:57:12.061Z"
+    "timestamp": "2026-07-15T22:57:32.036Z"
+  },
+  "maps": {
+    "googleMapsEnabled": false,
+    "googleMapsKey": ""
   },
   "registration": {
-    "ok": false,
-    "code": "NOTION_WRITE_FAILED",
-    "error": "No pudimos guardar tu pedido. Intenta nuevamente."
+    "ok": true,
+    "folio": "ANT-20260715-0611",
+    "notionUrl": "https://app.notion.com/p/ANT-20260715-0611-PRUEBA-T-CNICA-ANTOJO-39e334aa15c18168ae95c8d2a16bee09",
+    "pageId": "39e334aa-15c1-8168-ae95-c8d2a16bee09",
+    "logoSaved": false
   },
-  "folio": ""
+  "folio": "ANT-20260715-0611"
 }
