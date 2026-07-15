@@ -47,7 +47,6 @@ jobs:
           node --check /tmp/v6-final.js
 
       - name: Register a technical test order
-        id: register
         shell: bash
         run: |
           set -euo pipefail
@@ -78,9 +77,9 @@ jobs:
             "personalizationText":"",
             "unitPrice":65,
             "totalEstimate":65,
-            "notes":"Prueba automática de integración Vercel → Notion. Puede marcarse como descartada.",
+            "notes":"Prueba automática de pedido. Puede marcarse como descartada.",
             "utm":{"source":"github-actions","medium":"smoke-test","campaign":"production-v6"},
-            "sessionId":"github-actions-smoke",
+            "sessionId":"github-actions-smoke-order",
             "eventTrail":[],
             "pageUrl":"https://antojo-bio.vercel.app/",
             "userAgent":"GitHub Actions",
@@ -91,7 +90,63 @@ jobs:
           HTTP_CODE=$(curl -sS -o /tmp/register.json -w '%{http_code}' -X POST "https://antojo-bio.vercel.app/api/submit" -H 'Content-Type: application/json' --data-binary @/tmp/payload.json)
           test "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "200"
           grep -q '"ok":true' /tmp/register.json
-          echo "folio=$FOLIO" >> "$GITHUB_OUTPUT"
+
+      - name: Register an event quote with logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          TODAY=$(date -u +%Y%m%d)
+          CODE=$(printf '%04X' "$((RANDOM % 65536))")
+          FOLIO="ANT-${TODAY}-${CODE}"
+          echo "$FOLIO" > /tmp/event-folio.txt
+          cat > /tmp/event-payload.json <<JSON
+          {
+            "folio":"${FOLIO}",
+            "type":"quote",
+            "createdAt":"$(date -u +%FT%TZ)",
+            "name":"PRUEBA EVENTO Y LOGO ANTOJO",
+            "phone":"5522026291",
+            "consent":true,
+            "items":[{"id":"mojito-mariposa","name":"Mojito mariposa","qty":50,"alcohol":true}],
+            "units":50,
+            "targetQuantity":50,
+            "occasion":"event",
+            "fulfillment":"event",
+            "requiredDate":"",
+            "requiredTime":"",
+            "dateUnknown":true,
+            "address":"",
+            "shippingFee":0,
+            "personalization":"logo",
+            "personalizationText":"Prueba técnica de carga de logo",
+            "unitPrice":null,
+            "totalEstimate":null,
+            "notes":"Prueba automática de evento y logo. Puede marcarse como descartada.",
+            "eventType":"Boda",
+            "eventGuests":50,
+            "eventVenue":"",
+            "eventVenueName":"",
+            "eventVenueUnknown":true,
+            "eventPlaceId":"",
+            "eventLat":"",
+            "eventLng":"",
+            "eventPackage":"Personalizado",
+            "logoData":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl3sAAAAASUVORK5CYII=",
+            "logoName":"smoke-logo.png",
+            "logoMime":"image/png",
+            "utm":{"source":"github-actions","medium":"smoke-test","campaign":"production-v6-logo"},
+            "sessionId":"github-actions-smoke-event",
+            "eventTrail":[],
+            "pageUrl":"https://antojo-bio.vercel.app/",
+            "userAgent":"GitHub Actions",
+            "website":"",
+            "whatsappOpened":false
+          }
+          JSON
+          HTTP_CODE=$(curl -sS -o /tmp/event-register.json -w '%{http_code}' -X POST "https://antojo-bio.vercel.app/api/submit" -H 'Content-Type: application/json' --data-binary @/tmp/event-payload.json)
+          test "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "200"
+          grep -q '"ok":true' /tmp/event-register.json
+          grep -q '"logoSaved":true' /tmp/event-register.json
 
       - name: Write auditable result
         if: always()
@@ -110,8 +165,10 @@ jobs:
               "productionUrl": "https://antojo-bio.vercel.app",
               "health": read_json('/tmp/health.json'),
               "maps": read_json('/tmp/config.json'),
-              "registration": read_json('/tmp/register.json'),
-              "folio": read_text('/tmp/folio.txt')
+              "orderRegistration": read_json('/tmp/register.json'),
+              "orderFolio": read_text('/tmp/folio.txt'),
+              "eventRegistration": read_json('/tmp/event-register.json'),
+              "eventFolio": read_text('/tmp/event-folio.txt')
           }
           pathlib.Path('smoke-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
           PY
