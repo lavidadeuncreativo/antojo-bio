@@ -1,0 +1,11 @@
+.club-card{background:#111;color:#fff}
+    .review-teaser h3,.club-card h3{font-size:25px;line-height:.95;letter-spacing:-.055em;margin:15px 0 0}.review-teaser p,.club-card p{font-size:11px;line-height:1.35;margin:9px 0;color:rgba(17,17,17,.62)}.club-card p{color:rgba(255,255,255,.62)}
+    .review-stars{display:flex;gap:2px;margin-top:auto}.review-stars button{border:0;background:transparent;padding:3px 1px;font-size:23px;cursor:pointer;transition:.18s ease}.review-stars:hover button{color:#111}.review-stars button:hover~button{opacity:.3}
+    .club-badge{align-self:flex-start;background:var(--lime);color:#111;border-radius:999px;padding:7px 9px;font-size:8px;font-weight:900;letter-spacing:.12em}
+    .club-progress{display:flex;gap:6px;margin-top:auto}.club-progress i{width:17px;height:17px;border-radius:50%;border:1px solid rgba(255,255,255,.34)}.club-progress i:first-child{background:var(--lime);border-color:var(--lime)}
+    .club-card button{border:0;background:#fff;color:#111;border-radius:999px;min-height:39px;padding:0 12px;margin-top:11px;font-size:10px;font-weight:800;cursor:pointer}
+
+    .event-estimate{margin-top:11px;border-radius:17px;background:rgba(213,243,93,.13);border:1px solid rgba(213,243,93,.32);padding:11px 12px;font-size:10px;line-height:1.35;color:rgba(255,255,255,.70);position:relative;z-index:2}
+    .delivery-inline{margin-top:12px;background:var(--blue);border-radius:22px;padding:14px}.delivery-inline .shipping-form{margin-top:10px}.delivery-inline .shipping-result{background:rgba(255,255,255,.88)}
+    @keyframes logoLoop{from{transform:translateX(0)}to{transform:translateX(calc(-50% - 15px))}}
+    @media(max-width:380px){.trust-grid{grid-template-columns:1fr}.shipping-form{grid-template-columns:1fr}.shipping-form button{height:48px}.logo-track span{font-size:18px}}
