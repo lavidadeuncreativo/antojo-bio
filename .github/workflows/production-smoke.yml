@@ -1,0 +1,118 @@
+name: Production smoke test
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - smoke-result.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Vercel production deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://antojo-bio.vercel.app"
+          for attempt in $(seq 1 30); do
+            if curl -fsS "$BASE_URL/api/health" > /tmp/health.json; then
+              if grep -q '"notionConfigured":true' /tmp/health.json; then
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+          echo "Production health check did not become ready"
+          cat /tmp/health.json 2>/dev/null || true
+          exit 1
+
+      - name: Verify application assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS "https://antojo-bio.vercel.app/" > /tmp/home.html
+          grep -q "v6-final.js" /tmp/home.html
+          curl -fsS "https://antojo-bio.vercel.app/v6-final.js" > /tmp/v6-final.js
+          node --check /tmp/v6-final.js
+
+      - name: Register a technical test order
+        id: register
+        shell: bash
+        run: |
+          set -euo pipefail
+          TODAY=$(date -u +%Y%m%d)
+          CODE=$(printf '%04X' "$((RANDOM % 65536))")
+          FOLIO="ANT-${TODAY}-${CODE}"
+          REQUIRED=$(date -u -d '+5 days' +%F)
+          cat > /tmp/payload.json <<JSON
+          {
+            "folio":"${FOLIO}",
+            "type":"order",
+            "createdAt":"$(date -u +%FT%TZ)",
+            "name":"PRUEBA TÉCNICA ANTOJO",
+            "phone":"5522026291",
+            "consent":true,
+            "items":[{"id":"espresso-horchata","name":"Espresso horchata","qty":1,"alcohol":false}],
+            "units":1,
+            "targetQuantity":1,
+            "occasion":"fin",
+            "fulfillment":"wtc",
+            "requiredDate":"${REQUIRED}",
+            "requiredTime":"12:00",
+            "dateUnknown":false,
+            "address":"",
+            "shippingFee":0,
+            "personalization":"normal",
+            "personalizationText":"",
+            "unitPrice":65,
+            "totalEstimate":65,
+            "notes":"Prueba automática de integración Vercel → Notion. Puede marcarse como descartada.",
+            "utm":{"source":"github-actions","medium":"smoke-test","campaign":"production-v6"},
+            "sessionId":"github-actions-smoke",
+            "eventTrail":[],
+            "pageUrl":"https://antojo-bio.vercel.app/",
+            "userAgent":"GitHub Actions",
+            "website":"",
+            "whatsappOpened":false
+          }
+          JSON
+          HTTP_CODE=$(curl -sS -o /tmp/register.json -w '%{http_code}' -X POST "https://antojo-bio.vercel.app/api/submit" -H 'Content-Type: application/json' --data-binary @/tmp/payload.json)
+          test "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "200"
+          grep -q '"ok":true' /tmp/register.json
+          echo "folio=$FOLIO" >> "$GITHUB_OUTPUT"
+
+      - name: Write auditable result
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, datetime
+          def read(path):
+              try: return json.loads(pathlib.Path(path).read_text())
+              except Exception: return None
+          result={
+              "checkedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              "productionUrl": "https://antojo-bio.vercel.app",
+              "health": read('/tmp/health.json'),
+              "registration": read('/tmp/register.json'),
+              "folio": os.environ.get('FOLIO','')
+          }
+          pathlib.Path('smoke-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          PY
+          git config user.name "antojo-smoke-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add smoke-result.json
+          if ! git diff --cached --quiet; then
+            git commit -m "test: record production smoke result [skip ci]"
+            git push
+          fi
