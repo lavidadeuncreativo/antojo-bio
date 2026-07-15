@@ -1,16 +1,20 @@
 {
-  "checkedAt": "2026-07-15T22:55:44.410350+00:00",
+  "checkedAt": "2026-07-15T22:57:18.439631+00:00",
   "productionUrl": "https://antojo-bio.vercel.app",
   "health": {
     "ok": true,
+    "ready": false,
     "service": "antojo-webapp",
     "notionConfigured": true,
-    "timestamp": "2026-07-15T22:55:42.801Z"
+    "notionDataSourceAccessible": false,
+    "notionStatus": "permission_required",
+    "googleMapsConfigured": false,
+    "timestamp": "2026-07-15T22:57:12.061Z"
   },
   "registration": {
     "ok": false,
-    "error": "No fue posible registrar el pedido en Notion.",
-    "detail": "Could not find data_source with ID: 119298bb-476d-40f3-b8f0-eab4c5bd5d8a. Make sure the relevant pages and databases are shared with your integration \"ANTOJO Web App\"."
+    "code": "NOTION_WRITE_FAILED",
+    "error": "No pudimos guardar tu pedido. Intenta nuevamente."
   },
   "folio": ""
 }
