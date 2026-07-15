@@ -1,1 +1,1 @@
-// Remaining beverage renders are bundled in v4-render-09.js.
+window.ANTOJO_CONFIG={deliveryOrigin:'Joaquina by Urbanista',shippingModel:'zone-estimate'};
