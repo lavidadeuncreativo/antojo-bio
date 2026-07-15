@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-07-15T22:54:08.971578+00:00",
+  "productionUrl": "https://antojo-bio.vercel.app",
+  "health": {
+    "ok": true,
+    "service": "antojo-webapp",
+    "notionConfigured": true,
+    "timestamp": "2026-07-15T22:54:07.142Z"
+  },
+  "registration": {
+    "ok": false,
+    "error": "No fue posible registrar el pedido en Notion.",
+    "detail": "Could not find data_source with ID: 119298bb-476d-40f3-b8f0-eab4c5bd5d8a. Make sure the relevant pages and databases are shared with your integration \"ANTOJO Web App\"."
+  },
+  "folio": ""
+}
