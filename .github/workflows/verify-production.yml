@@ -1,0 +1,56 @@
+name: Verify production integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error https://antojo-bio.vercel.app/api/health)"
+          echo "$response"
+          node -e 'const r=JSON.parse(process.argv[1]); if(!r.ok || !r.notionConfigured) process.exit(1)' "$response"
+
+      - name: Submit an identifiable test request
+        shell: bash
+        run: |
+          set -euo pipefail
+          folio="ANT-$(date -u +%Y%m%d)-GH${GITHUB_RUN_NUMBER}"
+          payload=$(cat <<JSON
+          {
+            "folio":"${folio}",
+            "name":"Prueba técnica ANTOJO",
+            "phone":"5555555555",
+            "consent":true,
+            "type":"order",
+            "items":[{"name":"Mojito clásico — PRUEBA","qty":1}],
+            "targetQuantity":1,
+            "fulfillment":"wtc",
+            "occasion":"fin",
+            "personalization":"normal",
+            "unitPrice":65,
+            "totalEstimate":65,
+            "createdAt":"$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "requiredDate":"2026-07-20",
+            "notes":"Registro de prueba automatizada. Puede marcarse como Descartada.",
+            "sessionId":"github-actions-${GITHUB_RUN_ID}",
+            "pageUrl":"https://antojo-bio.vercel.app",
+            "userAgent":"GitHub Actions production verification",
+            "eventTrail":[{"name":"verification_test","at":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}],
+            "utm":{"source":"github-actions","medium":"technical-test","campaign":"production-verification"}
+          }
+          JSON
+          )
+          response="$(curl --fail-with-body --silent --show-error -X POST https://antojo-bio.vercel.app/api/submit -H 'Content-Type: application/json' --data "$payload")"
+          echo "$response"
+          node -e 'const r=JSON.parse(process.argv[1]); if(!r.ok || !r.notionUrl) process.exit(1)' "$response"
