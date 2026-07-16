@@ -1,5 +1,38 @@
-const CACHE='antojo-v9';
-const ASSETS=['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/v5-final.css', '/v6-final.css', '/v7-final.css', '/v8-final.css', '/v9-final.css', '/v6-final.js', '/v7-final.js', '/v8-final.js', '/v9-final.js', '/v9-render-map.js', '/v4-render-01.js', '/v4-render-02.js', '/v4-render-03.js', '/v4-render-04.js', '/v4-render-05.js', '/v4-render-06.js', '/v4-render-07.js', '/v4-render-08.js', '/v4-render-09.js'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request).then(response=>response||caches.match('/index.html'))))});
+const CACHE = 'antojo-clean-v4';
+const ASSETS = [
+  '/', '/index.html', '/favicon.svg', '/manifest.webmanifest',
+  '/clean-styles-01.css', '/clean-styles-02.css', '/clean-styles-03.css', '/clean-styles-04.css', '/clean-styles-05.css', '/clean-personalizer.css',
+  '/clean-data.js', '/clean-ui.js', '/clean-journeys.js', '/clean-experiences.js', '/clean-checkout.js', '/clean-payload-map.js', '/clean-personalizer.js', '/clean-render-bind.js', '/clean-init.js', '/clean-init-core.js',
+  '/clean-render-data-01.js', '/clean-render-data-02.js', '/clean-render-data-03.js', '/clean-render-data-04.js', '/clean-render-data-05.js', '/clean-render-data-06.js', '/clean-render-sprite.js'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).then(response => {
+      const copy = response.clone();
+      caches.open(CACHE).then(cache => cache.put('/index.html', copy));
+      return response;
+    }).catch(() => caches.match('/index.html')));
+    return;
+  }
+  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
+    const copy = response.clone();
+    caches.open(CACHE).then(cache => cache.put(request, copy));
+    return response;
+  })));
+});
