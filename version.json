@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "release": "clean-20260716-3",
+  "source": "github-main",
+  "expectedEntryPoints": ["index.html", "clean.css", "clean.js"],
+  "legacyLayersLoaded": false
+}
