@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -22,4 +24,22 @@ jobs:
           find . -type f -name '*.js' -not -path './.git/*' -print0 | xargs -0 -n1 node --check
 
       - name: Run smoke checks
-        run: node tests/smoke.js
+        id: smoke
+        continue-on-error: true
+        run: node tests/smoke.js > smoke.log 2>&1
+
+      - name: Print smoke result
+        if: always()
+        run: cat smoke.log
+
+      - name: Upload smoke result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-smoke-log
+          path: smoke.log
+          retention-days: 3
+
+      - name: Fail when smoke checks failed
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1
