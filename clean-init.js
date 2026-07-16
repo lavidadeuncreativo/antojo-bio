@@ -1,6 +1,6 @@
 (()=>{
   'use strict';
-  const VERSION = '3';
+  const VERSION = '4';
   const loadStyle = href => {
     if (document.querySelector(`link[href^="${href}"]`)) return;
     const link = document.createElement('link');
@@ -35,6 +35,8 @@
   ])
     .then(() => window.ANTOJO_RENDER_READY)
     .then(() => loadScript('/clean-personalizer.js'))
+    .then(() => loadScript('/clean-render-bind.js'))
     .then(() => loadScript('/clean-init-core.js'))
+    .then(() => window.ANTOJO?.applyRenderMap?.())
     .catch(fail);
 })();
