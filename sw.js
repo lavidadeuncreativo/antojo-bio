@@ -1,5 +1,5 @@
-const CACHE='antojo-v8';
-const ASSETS=['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/v5-final.css', '/v6-final.css', '/v7-final.css', '/v8-final.css', '/v6-final.js', '/v7-final.js', '/v8-final.js', '/v4-render-01.js', '/v4-render-02.js', '/v4-render-03.js', '/v4-render-04.js', '/v4-render-05.js', '/v4-render-06.js', '/v4-render-07.js', '/v4-render-08.js', '/v4-render-09.js'];
+const CACHE='antojo-v9';
+const ASSETS=['/', '/index.html', '/favicon.svg', '/manifest.webmanifest', '/v5-final.css', '/v6-final.css', '/v7-final.css', '/v8-final.css', '/v9-final.css', '/v6-final.js', '/v7-final.js', '/v8-final.js', '/v9-final.js', '/v9-render-map.js', '/v4-render-01.js', '/v4-render-02.js', '/v4-render-03.js', '/v4-render-04.js', '/v4-render-05.js', '/v4-render-06.js', '/v4-render-07.js', '/v4-render-08.js', '/v4-render-09.js'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match(event.request).then(response=>response||caches.match('/index.html'))))});
