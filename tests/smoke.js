@@ -52,7 +52,7 @@ assert(journeys.includes('1.5 por persona'), 'El evento ofrece cobertura por per
 assert(journeys.includes("state.journey = 'custom'"), 'Existe un recorrido específico para personalizadas');
 assert(!journeys.includes('state.cart='), 'Los recorridos no reemplazan el carrito');
 
-assert(personalizer.includes('writing-mode') === false && read('clean-personalizer.css').includes('writing-mode:vertical-rl'), 'La frase personalizada se muestra vertical');
+assert(!personalizer.includes('writing-mode') && read('clean-personalizer.css').includes('writing-mode:vertical-rl'), 'La frase personalizada se muestra vertical');
 assert(personalizer.includes('phraseSizeField'), 'La frase permite cambiar de tamaño');
 assert(personalizer.includes('Aviso de privacidad'), 'La interfaz incluye aviso de privacidad y condiciones');
 
@@ -74,7 +74,7 @@ const frontend = [data, ui, journeys, checkout, personalizer, init, core, sprite
 assert(!frontend.includes('NOTION_TOKEN'), 'El token de Notion no está expuesto en frontend');
 assert(submit.includes('process.env.NOTION_TOKEN'), 'El backend usa el secreto de Notion en servidor');
 assert(submit.includes('119298bb-476d-40f3-b8f0-eab4c5bd5d8a'), 'El backend conserva la bandeja de Notion correcta');
-assert(submit.includes("'Notion-Version': NOTION_VERSION"), 'La API de Notion continúa versionada');
+assert(/['"]Notion-Version['"]\s*:\s*NOTION_VERSION/.test(submit), 'La API de Notion continúa versionada');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log('\nANTOJO. clean frontend smoke checks passed.');
