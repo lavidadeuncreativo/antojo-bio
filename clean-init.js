@@ -56,8 +56,27 @@
     story?.addEventListener('mouseleave', () => cans.forEach((can, index) => can.style.transform = `rotate(${index ? -8 : 7}deg)`));
   };
 
+  A.goHomeAnchor = anchor => {
+    A.closeMobileMenu();
+    A.showScreen('home');
+    const map = {needs:'#needsSection',how:'#howSection',faq:'#faqSection'};
+    setTimeout(() => A.$(map[anchor])?.scrollIntoView({behavior:'smooth',block:'start'}), 120);
+  };
+
   A.bindGlobalEvents = () => {
     document.addEventListener('click', event => {
+      const menuTarget = event.target.closest('[data-menu-target]');
+      if (menuTarget) {
+        event.preventDefault();
+        A.showScreen(menuTarget.dataset.menuTarget);
+        return;
+      }
+      const homeAnchor = event.target.closest('[data-home-anchor]');
+      if (homeAnchor) {
+        event.preventDefault();
+        A.goHomeAnchor(homeAnchor.dataset.homeAnchor);
+        return;
+      }
       const screenLink = event.target.closest('[data-screen-link]');
       if (screenLink) {
         event.preventDefault();
