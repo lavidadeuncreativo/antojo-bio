@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-07-16T23:53:05.736321+00:00",
+  "checkedAt": "2026-07-16T23:53:42.146763+00:00",
   "productionUrl": "https://antojo-bio.vercel.app",
   "health": {
     "ok": true,
@@ -9,7 +9,7 @@
     "notionDataSourceAccessible": true,
     "notionStatus": "connected",
     "googleMapsConfigured": false,
-    "timestamp": "2026-07-16T23:53:05.375Z"
+    "timestamp": "2026-07-16T23:53:41.855Z"
   },
   "maps": {
     "googleMapsEnabled": false,
