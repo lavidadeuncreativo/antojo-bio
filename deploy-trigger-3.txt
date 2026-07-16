@@ -1,0 +1,1 @@
+Use the GitHub web merge button so the merge commit is associated with the project owner's account.

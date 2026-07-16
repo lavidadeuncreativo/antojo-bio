@@ -1,0 +1,1 @@
+Production deploy should be initiated by the repository owner's merge action.

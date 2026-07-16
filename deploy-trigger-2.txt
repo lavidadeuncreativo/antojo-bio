@@ -1,0 +1,1 @@
+Final GitHub UI merge trigger for Vercel.
