@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-07-16T18:20:42.824837+00:00",
+  "checkedAt": "2026-07-16T19:02:01.400998+00:00",
   "productionUrl": "https://antojo-bio.vercel.app",
   "health": {
     "ok": true,
@@ -9,7 +9,7 @@
     "notionDataSourceAccessible": true,
     "notionStatus": "connected",
     "googleMapsConfigured": false,
-    "timestamp": "2026-07-16T18:20:38.617Z"
+    "timestamp": "2026-07-16T19:01:55.408Z"
   },
   "maps": {
     "googleMapsEnabled": false,
@@ -17,20 +17,20 @@
   },
   "orderRegistration": {
     "ok": true,
-    "folio": "ANT-20260716-168C",
-    "notionUrl": "https://app.notion.com/p/ANT-20260716-168C-PRUEBA-T-CNICA-ANTOJO-39f334aa15c18178b1b1fe14bdd19a93",
-    "pageId": "39f334aa-15c1-8178-b1b1-fe14bdd19a93",
+    "folio": "ANT-20260716-4484",
+    "notionUrl": "https://app.notion.com/p/ANT-20260716-4484-PRUEBA-T-CNICA-ANTOJO-39f334aa15c1818996c8e1e14c4723db",
+    "pageId": "39f334aa-15c1-8189-96c8-e1e14c4723db",
     "logoSaved": false,
-    "submittedTime": "12:20:39 p.m."
+    "submittedTime": "01:01:57 p.m."
   },
-  "orderFolio": "ANT-20260716-168C",
+  "orderFolio": "ANT-20260716-4484",
   "eventRegistration": {
     "ok": true,
-    "folio": "ANT-20260716-43E3",
-    "notionUrl": "https://app.notion.com/p/ANT-20260716-43E3-PRUEBA-EVENTO-Y-LOGO-ANTOJO-39f334aa15c1814a9598e2ad91bb0ab2",
-    "pageId": "39f334aa-15c1-814a-9598-e2ad91bb0ab2",
+    "folio": "ANT-20260716-54AA",
+    "notionUrl": "https://app.notion.com/p/ANT-20260716-54AA-PRUEBA-EVENTO-Y-LOGO-ANTOJO-39f334aa15c18193a599dd714c09946b",
+    "pageId": "39f334aa-15c1-8193-a599-dd714c09946b",
     "logoSaved": true,
-    "submittedTime": "12:20:40 p.m."
+    "submittedTime": "01:01:59 p.m."
   },
-  "eventFolio": "ANT-20260716-43E3"
+  "eventFolio": "ANT-20260716-54AA"
 }
