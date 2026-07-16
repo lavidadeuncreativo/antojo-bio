@@ -1,0 +1,3 @@
+ANTOJO clean frontend release
+Trigger: user-authored merge required for Vercel Git identity verification.
+Release: clean-20260716-4
