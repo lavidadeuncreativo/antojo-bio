@@ -1,0 +1,36 @@
+:root{--v7-ease:cubic-bezier(.22,.72,.24,1)}
+
+/* Home journey: one clear decision, then context */
+.journey-card{background:rgba(255,255,255,.72);border:1px solid var(--line);border-radius:31px;padding:11px;box-shadow:0 18px 42px rgba(48,37,25,.055)}
+.v7-mode-grid{margin:0}.v7-mode-grid .mode-card{min-height:174px}.v7-mode-grid .mode-card.order{background:#111;color:#fff}.v7-mode-grid .mode-card.quote{background:var(--coral)}
+.v7-mode-grid .mode-card small{font-size:8px;letter-spacing:.14em}.v7-mode-grid .mode-card b{font-size:23px;max-width:9em}.v7-mode-grid .mode-card span{max-width:18ch}
+.personal-plan-label{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 7px 10px}.personal-plan-label span{font-size:10px;font-weight:790;letter-spacing:.01em;color:var(--muted)}.personal-plan-label button{border:0;background:transparent;font-size:9px;font-weight:790;padding:4px 0}
+.compact-plans{padding:0 1px 2px}.compact-plans .occasion-card{flex:0 0 168px;border-radius:22px;padding:12px;grid-template-columns:38px 1fr;gap:9px;box-shadow:none}.compact-plans .occasion-icon{width:38px;height:38px;border-radius:13px}.compact-plans .occasion-card b{font-size:14px}.compact-plans .occasion-card small{font-size:9px}
+.home-marquee{margin-top:12px}
+
+/* Softer transitions throughout the app */
+.screen{opacity:0!important;visibility:hidden!important;pointer-events:none!important;filter:blur(8px)!important;transform:translate3d(0,13px,0) scale(.996)!important;transition:opacity .48s ease,filter .62s ease,transform .68s var(--v7-ease),visibility 0s .68s!important;will-change:opacity,filter,transform}
+.screen.active{opacity:1!important;visibility:visible!important;pointer-events:auto!important;filter:blur(0)!important;transform:translate3d(0,0,0) scale(1)!important;transition-delay:.06s!important}
+.app-shell.v7-moving .screen-stack{filter:blur(1.5px);transform:scale(.998)}
+.screen-stack{transition:filter .36s ease,transform .5s var(--v7-ease)}
+.topbar,.bottom-nav,.checkout-action{transition-duration:.55s!important;transition-timing-function:var(--v7-ease)!important}
+.product-sheet{transition:transform .72s var(--v7-ease),filter .62s ease!important}
+.sheet-backdrop{transition:opacity .45s ease,backdrop-filter .55s ease!important}
+.event-wizard-backdrop{transition:opacity .45s ease,visibility 0s .45s!important}
+.event-wizard-backdrop.open{transition-delay:0s!important}.event-wizard-panel{transition:transform .66s var(--v7-ease),filter .55s ease,opacity .45s ease!important}
+.reveal{filter:blur(7px);transform:translateY(13px);transition:opacity .58s ease,filter .72s ease,transform .72s var(--v7-ease)!important}.reveal.in{filter:none;transform:none}
+.mode-card,.occasion-card,.mini-product,.product-card,.choice-card,.personal-card,.package-card,.event-type-card{transition:transform .36s var(--v7-ease),box-shadow .36s ease,border-color .3s ease,background-color .35s ease!important}
+.mode-card:active,.occasion-card:active,.mini-product:active,.product-card:active{transform:scale(.975)!important}
+
+/* Consistent real can crops */
+.product-card img,.mini-product img,.hero-cans img,.slide-art img,.sheet-media img,.cart-thumb img,.float-can img,.event-card img{image-rendering:auto;backface-visibility:hidden;transform:translateZ(0);filter:drop-shadow(0 16px 14px rgba(0,0,0,.17)) saturate(1.035) contrast(1.025)!important}
+.product-card .media:before,.mini-product-media:before{filter:blur(1px)}
+
+/* Honest WhatsApp handoff */
+.whatsapp-handoff{background:var(--blue);border-radius:19px;padding:12px 14px;margin:12px auto 0;max-width:340px;font-size:10px;line-height:1.42;text-align:left}.whatsapp-handoff b{display:block;font-size:11px;margin-bottom:3px}.success-actions .primary-btn small{display:block;font-size:8px;opacity:.68;margin-top:2px}.success-folio{letter-spacing:.06em}
+
+/* Notion confirmation time */
+.registration-time{font-size:10px;color:var(--muted);margin:7px 0 0;text-align:center}
+
+@media(max-width:390px){.v7-mode-grid{grid-template-columns:1fr}.v7-mode-grid .mode-card{min-height:142px}.journey-card{padding:9px}.personal-plan-label{padding-top:15px}.compact-plans .occasion-card{flex-basis:155px}}
+@media(prefers-reduced-motion:reduce){.screen,.screen.active,.screen-stack,.event-wizard-panel,.product-sheet{transition-duration:.001ms!important;filter:none!important;transform:none!important}}
