@@ -43,7 +43,7 @@ assert(data.includes('localStorage.setItem(A.STORAGE_KEY'), 'El pedido tiene per
 assert(ui.includes('class AutoCarousel'), 'Existe un único controlador de carrusel');
 assert(ui.includes('requestAnimationFrame(tick)'), 'Los carruseles usan animación continua');
 assert(ui.includes('this.speed = 0.17'), 'La velocidad del carrusel es lenta');
-assert(ui.includes("event.target.id === 'productModal'"), 'La ficha se cierra tocando el fondo');
+assert(core.includes("event.target.id === 'productModal'"), 'La ficha se cierra tocando el fondo');
 assert(core.includes("event.key !== 'Escape'"), 'La ficha y modales se cierran con Escape');
 assert(core.includes("$('#closeProductModal').onclick = A.closeProduct"), 'La ficha se cierra con el botón X');
 
