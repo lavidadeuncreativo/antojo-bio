@@ -1,0 +1,6 @@
+{
+  "release": "clean-frontend-2026-07-16",
+  "frontendCommit": "3c10ed60145dc88ec5cde6aadd082721f79c15d5",
+  "legacyCacheRetired": true,
+  "entrypoints": ["index.html", "clean.css", "clean.js"]
+}
