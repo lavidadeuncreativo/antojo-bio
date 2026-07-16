@@ -1,8 +1,8 @@
-const CACHE = 'antojo-clean-v2';
+const CACHE = 'antojo-clean-v3';
 const ASSETS = [
   '/', '/index.html', '/favicon.svg', '/manifest.webmanifest',
   '/clean-styles-01.css', '/clean-styles-02.css', '/clean-styles-03.css', '/clean-styles-04.css', '/clean-styles-05.css', '/clean-personalizer.css',
-  '/clean-data.js', '/clean-ui.js', '/clean-journeys.js', '/clean-checkout.js', '/clean-personalizer.js', '/clean-render-bind.js', '/clean-init.js', '/clean-init-core.js',
+  '/clean-data.js', '/clean-ui.js', '/clean-journeys.js', '/clean-experiences.js', '/clean-checkout.js', '/clean-personalizer.js', '/clean-render-bind.js', '/clean-init.js', '/clean-init-core.js',
   '/clean-render-data-01.js', '/clean-render-data-02.js', '/clean-render-data-03.js', '/clean-render-data-04.js', '/clean-render-data-05.js', '/clean-render-data-06.js', '/clean-render-sprite.js'
 ];
 
