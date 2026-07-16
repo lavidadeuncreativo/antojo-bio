@@ -1,0 +1,127 @@
+name: Authorize and deploy ANTOJO to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/vercel-device-auth-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: antojo-vercel-device-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Authorize Vercel and deploy production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Authorize Vercel account
+        shell: bash
+        run: |
+          echo '============================================================'
+          echo 'ABRE EL ENLACE DE AUTORIZACIÓN QUE APARECERÁ ABAJO.'
+          echo 'INICIA SESIÓN EN VERCEL Y APRUEBA EL DISPOSITIVO.'
+          echo 'ESTE PROCESO ESPERARÁ HASTA 12 MINUTOS.'
+          echo '============================================================'
+          timeout 12m script -q -e -c "vercel login --no-color" /dev/null
+
+      - name: Resolve Vercel token and project
+        id: resolve
+        shell: bash
+        run: |
+          AUTH_FILE=$(find "$HOME" -type f -name auth.json -path '*vercel*' -o -type f -name auth.json -path '*com.vercel.cli*' | head -n 1)
+          if [ -z "$AUTH_FILE" ] || [ ! -f "$AUTH_FILE" ]; then
+            echo 'No se encontró la sesión de Vercel creada por el inicio de sesión.'
+            exit 1
+          fi
+          TOKEN=$(node -e "const fs=require('fs'); const p=process.argv[1]; const j=JSON.parse(fs.readFileSync(p,'utf8')); process.stdout.write(j.token||'')" "$AUTH_FILE")
+          if [ -z "$TOKEN" ]; then
+            echo 'La sesión de Vercel no contiene un token válido.'
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+          curl -fsS -H "Authorization: Bearer $TOKEN" 'https://api.vercel.com/v2/teams?limit=100' > teams.json
+          TEAM_ID=$(node -e "const x=require('./teams.json'); const t=(x.teams||[]).find(v=>/la vida de un creativo/i.test(v.name||'')||/la-vida-de-un-creativo/i.test(v.slug||'')); process.stdout.write(t?.id||'')")
+
+          PROJECT_JSON=''
+          if [ -n "$TEAM_ID" ]; then
+            PROJECT_JSON=$(curl -fsS -H "Authorization: Bearer $TOKEN" "https://api.vercel.com/v9/projects/antojo-bio?teamId=$TEAM_ID" || true)
+          fi
+          if [ -z "$PROJECT_JSON" ] || ! echo "$PROJECT_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const x=JSON.parse(s);process.exit(x.id?0:1)}catch{process.exit(1)}})"; then
+            PROJECT_JSON=$(curl -fsS -H "Authorization: Bearer $TOKEN" 'https://api.vercel.com/v9/projects/antojo-bio')
+            TEAM_ID=$(echo "$PROJECT_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const x=JSON.parse(s);process.stdout.write(x.accountId||'')})")
+          fi
+
+          PROJECT_ID=$(echo "$PROJECT_JSON" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const x=JSON.parse(s);process.stdout.write(x.id||'')})")
+          if [ -z "$PROJECT_ID" ] || [ -z "$TEAM_ID" ]; then
+            echo 'No se encontró el proyecto antojo-bio en la cuenta autorizada.'
+            exit 1
+          fi
+
+          mkdir -p .vercel
+          printf '{"orgId":"%s","projectId":"%s"}\n' "$TEAM_ID" "$PROJECT_ID" > .vercel/project.json
+          echo "org_id=$TEAM_ID" >> "$GITHUB_OUTPUT"
+          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Pull production environment
+        env:
+          VERCEL_TOKEN: ${{ steps.resolve.outputs.token }}
+        run: vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+
+      - name: Build production
+        env:
+          VERCEL_TOKEN: ${{ steps.resolve.outputs.token }}
+        run: vercel build --prod --token "$VERCEL_TOKEN"
+
+      - name: Deploy production without cache
+        id: deploy
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ steps.resolve.outputs.token }}
+        run: |
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod --force --token "$VERCEL_TOKEN")
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Production deployment: $DEPLOY_URL"
+
+      - name: Verify release and backend
+        shell: bash
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          sleep 8
+          curl --fail --silent --show-error --retry 10 --retry-delay 4 "$DEPLOY_URL/version.json" | tee version-response.json
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('version-response.json','utf8'));if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1);console.log('Release verificada:',x.release)"
+          curl --fail --silent --show-error --retry 8 --retry-delay 4 "$DEPLOY_URL/api/health" | tee health-response.json
+
+      - name: Deployment summary
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          {
+            echo '## ANTOJO desplegado en producción'
+            echo ''
+            echo "- URL: $DEPLOY_URL"
+            echo "- Release: $DEPLOY_URL/version.json"
+            echo "- Backend: $DEPLOY_URL/api/health"
+            echo "- Commit: $GITHUB_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
