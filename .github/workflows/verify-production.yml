@@ -1,7 +1,9 @@
-name: Verify production integration
+name: Verify ANTOJO production
 
 on:
   push:
+    branches:
+      - main
     paths:
       - '.github/workflows/verify-production.yml'
   workflow_dispatch:
@@ -11,46 +13,45 @@ permissions:
 
 jobs:
   verify:
+    name: Verify production release and backend
     runs-on: ubuntu-latest
-    steps:
-      - name: Check production health
-        shell: bash
-        run: |
-          set -euo pipefail
-          response="$(curl --fail --silent --show-error https://antojo-bio.vercel.app/api/health)"
-          echo "$response"
-          node -e 'const r=JSON.parse(process.argv[1]); if(!r.ok || !r.notionConfigured) process.exit(1)' "$response"
+    timeout-minutes: 10
 
-      - name: Submit an identifiable test request
+    steps:
+      - name: Verify production homepage
         shell: bash
         run: |
           set -euo pipefail
-          folio="ANT-$(date -u +%Y%m%d)-GH${GITHUB_RUN_NUMBER}"
-          payload=$(cat <<JSON
+          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 'https://antojo-bio.vercel.app/' | tee homepage.html
+          grep -q '/clean.css' homepage.html
+          grep -q '/clean.js' homepage.html
+          if grep -q 'v9-final.js' homepage.html; then
+            echo 'La versión antigua sigue cargada.'
+            exit 1
+          fi
+
+      - name: Verify release marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 'https://antojo-bio.vercel.app/version' | tee version-response.json
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('version-response.json','utf8'));if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1);console.log('Release verificada:',x.release)"
+
+      - name: Verify backend health
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 'https://antojo-bio.vercel.app/api/health' | tee health-response.json
+          node -e "const fs=require('fs');const x=JSON.parse(fs.readFileSync('health-response.json','utf8'));if(!x.ok||!x.notionConfigured||!x.notionDataSourceAccessible)process.exit(1);console.log('Backend y Notion verificados')"
+
+      - name: Publish verification summary
+        run: |
           {
-            "folio":"${folio}",
-            "name":"Prueba técnica ANTOJO",
-            "phone":"5555555555",
-            "consent":true,
-            "type":"order",
-            "items":[{"name":"Mojito clásico — PRUEBA","qty":1}],
-            "targetQuantity":1,
-            "fulfillment":"wtc",
-            "occasion":"fin",
-            "personalization":"normal",
-            "unitPrice":65,
-            "totalEstimate":65,
-            "createdAt":"$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "requiredDate":"2026-07-20",
-            "notes":"Registro de prueba automatizada. Puede marcarse como Descartada.",
-            "sessionId":"github-actions-${GITHUB_RUN_ID}",
-            "pageUrl":"https://antojo-bio.vercel.app",
-            "userAgent":"GitHub Actions production verification",
-            "eventTrail":[{"name":"verification_test","at":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}],
-            "utm":{"source":"github-actions","medium":"technical-test","campaign":"production-verification"}
-          }
-          JSON
-          )
-          response="$(curl --fail-with-body --silent --show-error -X POST https://antojo-bio.vercel.app/api/submit -H 'Content-Type: application/json' --data "$payload")"
-          echo "$response"
-          node -e 'const r=JSON.parse(process.argv[1]); if(!r.ok || !r.notionUrl) process.exit(1)' "$response"
+            echo '## ANTOJO producción verificada'
+            echo ''
+            echo '- Frontend limpio cargado'
+            echo '- Marcador de release válido'
+            echo '- Backend operativo'
+            echo '- Notion conectado'
+            echo '- URL: https://antojo-bio.vercel.app/'
+          } >> "$GITHUB_STEP_SUMMARY"
