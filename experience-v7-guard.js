@@ -3,6 +3,13 @@
 
   document.documentElement.dataset.canTrailV7='true';
 
+  const nativeInsertAdjacentElement=Element.prototype.insertAdjacentElement;
+  Element.prototype.insertAdjacentElement=function(position,element){
+    if(position==='afterend'&&this.nextElementSibling===element)return element;
+    if(position==='beforebegin'&&this.previousElementSibling===element)return element;
+    return nativeInsertAdjacentElement.call(this,position,element);
+  };
+
   const css=`
     html.v7-entered .hero-v7-kicker,
     html.v7-entered .hero-v7-copy h1,
