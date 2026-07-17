@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "release": "clean-20260717-1",
+  "release": "phase1-20260717-3",
   "source": "github-main",
-  "expectedEntryPoints": ["index.html", "clean.css", "clean.js"],
+  "expectedEntryPoints": ["index.html", "clean.css", "clean-v2.css", "clean-v2.js"],
   "legacyLayersLoaded": false
 }

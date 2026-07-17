@@ -2,7 +2,8 @@
 'use strict';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const R=window.ANTOJO_RENDERS||{};
-const alias={'mojito-mocktail':'mojito-clasico','mariposa-mocktail':'mojito-mariposa','jamaica-limon':'mezcalita-jamaica','pepino-limon':'pepino-mezcal','maracuya-limon':'maracuya-mezcal'};
+const alias={'mojito-mocktail':'mojito-clasico','mariposa-mocktail':'mojito-mariposa','jamaica-limon':'mezcalita-jamaica','pepino-limon':'pepino-mezcal','maracuya-limon':'maracuya-mezcal','cold-brew':'americano','latte':'espresso-horchata','carajillo':'americano'};
+const renderPreference={'cold-brew':'americano'};
 const PRODUCTS=[
 {id:'mojito-clasico',name:'Mojito clásico',cat:'alcohol',label:'Con alcohol',desc:'Mezcal, limón y hierbabuena.',alcohol:true,color:'#d2fa4f'},
 {id:'mojito-mariposa',name:'Mojito mariposa',cat:'alcohol',label:'Con alcohol',desc:'Mezcal, limón, hierbabuena y té de mariposa.',alcohol:true,color:'#cdbcf7'},
@@ -31,7 +32,7 @@ function clone(v){return JSON.parse(JSON.stringify(v))}
 function load(){try{const x=JSON.parse(localStorage.getItem(STORE)||'null');return x&&x.version===2?Object.assign(clone(base),x):clone(base)}catch{return clone(base)}}
 function save(){try{localStorage.setItem(STORE,JSON.stringify({...state,version:2,success:null}))}catch{}}
 function p(id){return PRODUCTS.find(x=>x.id===id)}
-function src(id){return R[id]||R[alias[id]]||R['mojito-mariposa']||''}
+function src(id){const preferred=renderPreference[id]||id;return R[preferred]||R[alias[id]]||R[id]||R['mojito-mariposa']||''}
 function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
 function total(){return Object.values(state.cart).reduce((a,b)=>a+(Number(b)||0),0)}
 function items(){return Object.entries(state.cart).filter(([,n])=>n>0).map(([id,n])=>({...p(id),qty:n}))}
