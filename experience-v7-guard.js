@@ -1,6 +1,8 @@
 (()=>{
   'use strict';
 
+  document.documentElement.dataset.canTrailV7='true';
+
   const css=`
     html.v7-entered .hero-v7-kicker,
     html.v7-entered .hero-v7-copy h1,
@@ -41,7 +43,40 @@
     input.replaceWith(textarea);
   }
 
-  const observer=new MutationObserver(()=>normalizePersonalization());
-  observer.observe(document.body,{childList:true,subtree:true});
-  normalizePersonalization();
+  function setupShadowTrail(){
+    if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+    const images=['/renders/03_mojito_clasico_te_de_mariposa.png','/renders/05_horchata_espresso.png','/renders/09_maracuya.png','/renders/13_mezcalita_de_jamaica.png'];
+    const host=document.createElement('div');
+    host.setAttribute('aria-hidden','true');
+    host.style.cssText='position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;';
+    document.documentElement.appendChild(host);
+    const root=host.attachShadow({mode:'closed'});
+    const shadowStyle=document.createElement('style');
+    shadowStyle.textContent='img{position:fixed;width:48px;height:98px;object-fit:contain;pointer-events:none;opacity:0;filter:blur(8px) drop-shadow(0 12px 9px rgba(39,28,20,.18));transform:translate(-50%,-50%) scale(.72) rotate(var(--r));transition:opacity .18s ease,filter .28s ease,transform 1s cubic-bezier(.16,1,.3,1)}img.live{opacity:.78;filter:blur(0) drop-shadow(0 12px 9px rgba(39,28,20,.18));transform:translate(-50%,calc(-50% - 45px)) scale(1) rotate(var(--r))}';
+    root.appendChild(shadowStyle);
+    let index=0,last=0;
+    document.addEventListener('pointermove',event=>{
+      const now=performance.now();
+      if(now-last<82)return;
+      last=now;
+      const image=document.createElement('img');
+      image.src=images[index%images.length];
+      image.alt='';
+      image.style.left=`${event.clientX}px`;
+      image.style.top=`${event.clientY}px`;
+      image.style.setProperty('--r',`${(index++%2?1:-1)*(6+index%8)}deg`);
+      root.appendChild(image);
+      requestAnimationFrame(()=>image.classList.add('live'));
+      window.setTimeout(()=>image.remove(),1050);
+    },{passive:true});
+  }
+
+  function start(){
+    normalizePersonalization();
+    setupShadowTrail();
+    const observer=new MutationObserver(()=>normalizePersonalization());
+    observer.observe(document.body,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
