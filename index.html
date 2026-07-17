@@ -4,42 +4,149 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f6f0e7">
-  <meta name="antojo-release" content="phase1-20260717-5">
+  <meta name="antojo-release" content="phase1-20260717-6">
   <meta name="description" content="ANTOJO. Bebidas frías listas para tomar. Arma un pedido pequeño, planea un evento o cotiza latas personalizadas.">
-  <meta property="og:type" content="website"><meta property="og:locale" content="es_MX"><meta property="og:site_name" content="ANTOJO."><meta property="og:title" content="ANTOJO. — Porque cuando se antoja, se antoja"><meta property="og:description" content="Bebidas frías para pedidos pequeños, eventos y personalizaciones.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_MX">
+  <meta property="og:site_name" content="ANTOJO.">
+  <meta property="og:title" content="ANTOJO. — Porque cuando se antoja, se antoja">
+  <meta property="og:description" content="Bebidas frías para pedidos pequeños, eventos y personalizaciones.">
   <title>ANTOJO. — Porque cuando se antoja, se antoja</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="apple-touch-icon" href="/favicon.svg">
-  <link rel="stylesheet" href="/clean.css?v=20260717-1"><link rel="stylesheet" href="/clean-v2.css?v=20260717-5">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/clean.css?v=20260717-1">
+  <link rel="stylesheet" href="/clean-v2.css?v=20260717-6">
   <style>#appMain{padding-bottom:112px}.home-menu{scroll-margin-top:74px;padding-top:18px}</style>
   <script>(function(){try{if('serviceWorker'in navigator)navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));if(window.caches)caches.keys().then(keys=>keys.filter(k=>k.indexOf('antojo-')===0).forEach(k=>caches.delete(k)))}catch(e){}})();</script>
 </head>
-<body data-release="phase1-20260717-5">
+<body data-release="phase1-20260717-6">
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-word">ANTOJO.</div>
+  <div class="loader-bites"><i></i><i></i><i></i></div>
+</div>
 <div class="showcase">
   <aside class="brand-stage" aria-hidden="true">
     <div class="brand-logo">ANTOJO.</div>
-    <div class="brand-copy"><p class="eyebrow">Porque cuando se antoja, se antoja...</p><h1>Frío, bonito<br><span>y listo para compartir.</span></h1><p class="brand-lead">Bebidas en lata para planes pequeños, eventos y regalos que se sienten especiales desde el primer vistazo.</p><div class="badge-row"><span>Desde $55 c/u</span><span>18 sabores</span><span>Eventos y personalizadas</span></div></div>
-    <article class="desktop-can desktop-can-a" data-parallax="1.15"><img data-render="mojito-mariposa" alt=""><b>Mojito<br>mariposa</b></article><article class="desktop-can desktop-can-b" data-parallax=".8"><img data-render="espresso-horchata" alt=""><b>Espresso<br>horchata</b></article><div class="brand-foot"><i></i>ANTOJO. · Mobile web app</div>
+    <div class="brand-copy">
+      <p class="eyebrow">Bebidas frías en lata</p>
+      <h1>Porque cuando<br><span>se antoja, se antoja...</span></h1>
+      <p class="brand-lead">Sabores listos para compartir, fotografiar y repetir: pedidos pequeños, eventos y latas personalizadas con una experiencia fácil de elegir.</p>
+      <div class="badge-row"><span>Desde $65 c/u</span><span>18 sabores</span><span>Con y sin alcohol</span></div>
+    </div>
+    <article class="desktop-can desktop-can-a"><img data-render="mojito-mariposa" alt=""><b>Mojito<br>mariposa</b></article>
+    <article class="desktop-can desktop-can-b"><img data-render="espresso-horchata" alt=""><b>Espresso<br>horchata</b></article>
+    <a class="desktop-instagram-card" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">
+      <small>Instagram</small>
+      <strong>@antojo.bebidas</strong>
+      <span>Ver historia y drops ↗</span>
+    </a>
+    <div class="brand-foot"><i></i>ANTOJO. · Mobile web app</div>
   </aside>
   <div class="app-column"><div class="app-shell" id="appShell">
-    <header class="topbar"><button class="wordmark" data-route="home">ANTOJO.</button><span class="location-pill">WTC · Polyforum</span><button class="icon-button cart-button" data-route="cart" aria-label="Ver pedido"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H6M9 20h.01M17 20h.01"/></svg><span id="cartBadge">0</span></button><button class="section-menu-button" id="sectionMenuButton" aria-label="Abrir menú"><i></i></button></header>
-    <nav class="section-drawer" id="sectionDrawer"><button data-section="how">Cómo funciona <span>01</span></button><button data-section="needs">Qué necesitas <span>02</span></button><button data-section="menu">Menú <span>03</span></button><button data-section="favorites">Favoritos <span>04</span></button><button data-section="faq">Preguntas <span>05</span></button><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Instagram <span>↗</span></a></nav>
+    <header class="topbar">
+      <button class="wordmark" data-route="home">ANTOJO.</button>
+      <span class="location-pill">WTC · Polyforum</span>
+      <button class="icon-button cart-button" data-route="cart" aria-label="Ver pedido"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H6M9 20h.01M17 20h.01"/></svg><span id="cartBadge">0</span></button>
+      <button class="section-menu-button" id="sectionMenuButton" aria-label="Abrir menú"><i></i></button>
+    </header>
+    <nav class="section-drawer" id="sectionDrawer">
+      <button data-section="needs">Qué necesitas <span>01</span></button>
+      <button data-section="favorites">Favoritos <span>02</span></button>
+      <button data-section="packages">Paquetes <span>03</span></button>
+      <button data-route="menu">Menú <span>04</span></button>
+      <button data-section="faq">Preguntas <span>05</span></button>
+      <a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Instagram <span>↗</span></a>
+    </nav>
     <main id="appMain">
       <section class="screen active" data-screen="home">
-        <section class="hero-card hero-card-v3 reveal"><div class="hero-copy"><p class="hero-kicker"><i></i>Porque cuando se antoja, se antoja...</p><h1>¿Qué se te antoja hoy?</h1><p>Bebidas frías en lata, listas para compartir: cítricas, cremosas, con café o con mezcal.</p><div class="hero-actions"><button class="black-button" data-scroll="menu">Ver sabores <span>→</span></button><button class="line-button" data-journey="event">Cotizar evento</button></div><div class="hero-proof"><span>Desde $55 c/u</span><span>18 sabores</span><span>Con y sin alcohol</span></div></div><div class="hero-cans" aria-hidden="true"><img class="hero-can hero-can-a" data-render="mojito-mariposa" alt=""><img class="hero-can hero-can-b" data-render="espresso-horchata" alt=""><img class="hero-can hero-can-c" data-render="maracuya-mezcal" alt=""></div><div class="hero-ticket" aria-hidden="true"><b>$55</b><span>desde 21 piezas</span></div></section>
-        <section class="home-section reveal" id="how"><div class="section-heading"><p>Antes de empezar</p><h2>Así de fácil.</h2><span>No necesitas tener todo resuelto. Empieza por el tipo de plan y nosotros te guiamos.</span></div><div class="how-grid"><article><span>01</span><strong>Elige tu situación</strong><p>Pedido pequeño, evento o latas personalizadas.</p></article><article><span>02</span><strong>Arma tu selección</strong><p>Combina sabores y cantidades sin perder tus respuestas.</p></article><article><span>03</span><strong>Registramos y confirmamos</strong><p>Recibes un folio y te contactamos para cerrar los detalles.</p></article></div></section>
-        <section class="home-section reveal" id="needs"><div class="section-heading"><p>Ahora sí</p><h2>¿Qué necesitas?</h2><span>Elige la situación que más se parece a lo que estás buscando.</span></div><div class="need-grid"><button class="need-card need-order" data-journey="order"><small>Pedido pequeño</small><strong>Quiero pedir unas bebidas</strong><p>Para ti, una reunión o un plan sencillo. Elige sabores y ve el precio estimado.</p><i>→</i></button><button class="need-card need-event" data-journey="event"><small>Evento</small><strong>Estoy planeando un evento</strong><p>Boda, cumpleaños, reunión o evento corporativo.</p><i>→</i></button><button class="need-card need-custom" data-journey="custom"><small>Personalizadas</small><strong>Quiero latas con mi frase o identidad</strong><p>Para una boda, regalo, marca o empresa. Te ayudamos a aterrizar la idea.</p><i>→</i></button></div><button class="text-link" data-scroll="menu">Solo quiero explorar el menú →</button></section>
-        <section class="home-menu reveal" id="menu"><div class="page-head"><p class="eyebrow coral">Menú ANTOJO.</p><h1>Arma tu mix.</h1><p id="menuContext">Toca una bebida, mírala de cerca y agrega las que se te antojen.</p></div><div id="journeySummary"></div><label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="searchInput" placeholder="Buscar bebida o sabor" autocomplete="off"></label><div class="category-chips" id="categoryChips"></div><div class="menu-note">Tip ANTOJO.: para eventos elige 2 o 3 sabores estrella y suma una opción sin alcohol para que todos tengan algo rico.</div><div class="product-grid" id="productGrid"></div></section>
-        <section class="home-section reveal" id="favorites"><div class="section-heading heading-row"><div><p>Los que más se antojan</p><h2>Favoritos.</h2></div><button data-scroll="menu">Ver menú</button></div><div class="auto-carousel" data-carousel="favorites"><div class="carousel-track" id="favoriteTrack"></div></div></section>
-        <section class="plan-marquee reveal"><div><span>ANTOJO.</span><strong>perfecto para planes pequeños o grandes.</strong></div><div class="marquee-window"><div class="marquee-track"><b>BODAS</b><b>CUMPLEAÑOS</b><b>OFICINAS</b><b>WORKSHOPS</b><b>REUNIONES</b><b>ACTIVACIONES</b><b>BODAS</b><b>CUMPLEAÑOS</b><b>OFICINAS</b><b>WORKSHOPS</b></div></div></section>
-        <a class="instagram-card reveal" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener"><div><small>Sigue nuestra historia en Instagram</small><strong>@antojo.bebidas</strong><p>Pruebas, pedidos, nuevos sabores y cómo va creciendo este proyecto para ayudar a pagar nuestra boda.</p></div><span>↗</span></a>
-        <section class="home-section reveal" id="faq"><div class="section-heading"><p>Preguntas reales</p><h2>Antes de pedir.</h2></div><div class="faq-list"><details><summary>¿Por qué empezó ANTOJO.?</summary><p>Empezó como un proyecto para construir un negocio de bebidas y ayudarnos a pagar nuestra boda. Compartimos el proceso real, desde las primeras latas hasta cada nuevo pedido.</p></details><details><summary>¿Por qué entregan principalmente los fines de semana?</summary><p>Actualmente concentramos producción y entregas para preparar lotes frescos y cuidar mejor cada bebida. Los pedidos y eventos entre semana se revisan según fecha, cantidad y disponibilidad.</p></details><details><summary>¿Cuánto duran las bebidas?</summary><p>Se entregan refrigeradas y recomendamos consumirlas lo más frescas posible. La conservación cambia según la bebida; al confirmar el pedido te indicamos el consumo recomendado para tus sabores.</p></details><details><summary>¿Qué precio tienen?</summary><p>De 1 a 5 bebidas cuestan $65 c/u; de 6 a 20, $60 c/u; y de 21 a 50, $55 c/u. Más de 50 piezas, eventos o personalizaciones pasan a cotización.</p></details><details><summary>¿Puedo mezclar sabores?</summary><p>Sí. En pedidos pequeños puedes combinar libremente. Para eventos recomendamos dos o tres sabores para facilitar producción, servicio y presentación.</p></details><details><summary>¿Puedo pedir latas con una frase o logo?</summary><p>Sí. Puedes escribir una frase, subir un logo y ver una referencia. La legibilidad, el arte final y el costo se revisan contigo antes de producir.</p></details><details><summary>¿Puedo recoger o pedir entrega?</summary><p>Puedes recoger en la zona WTC · Polyforum. La entrega se revisa desde 10 bebidas y su costo depende de la ubicación.</p></details></div></section>
-        <section class="home-section reveal"><div class="section-heading"><p>Comunidad ANTOJO.</p><h2>¿Ya lo probaste?</h2></div><div class="community-grid"><article class="community-card review"><small>RESEÑAS</small><h3>Cuéntanos cómo te fue.</h3><p>Tu opinión nos ayuda a mejorar cada bebida y cada entrega.</p><div class="rating-stars"><button data-rating="1">★</button><button data-rating="2">★</button><button data-rating="3">★</button><button data-rating="4">★</button><button data-rating="5">★</button></div></article><article class="community-card club"><small>PRÓXIMAMENTE</small><h3>ANTOJO. Club</h3><p>Drops, nuevos sabores y recompensas para quienes regresan.</p><button id="clubButton">Quiero enterarme</button></article></div></section>
+        <section class="hero-card hero-card-v3 reveal">
+          <div class="hero-copy">
+            <p class="hero-kicker"><i></i>Porque cuando se antoja, se antoja...</p>
+            <h1>¿Qué se te<br>antoja hoy?</h1>
+            <p>Bebidas frías en lata, listas para compartir: cítricas, cremosas, con café o con mezcal.</p>
+            <div class="hero-actions">
+              <button class="black-button" data-route="menu">Ver sabores <span>→</span></button>
+              <button class="line-button" data-journey="event">Cotizar evento</button>
+            </div>
+            <div class="hero-proof"><span>Desde $65 c/u</span><span>18 sabores</span><span>Con y sin alcohol</span></div>
+          </div>
+          <div class="hero-cans" aria-hidden="true"><img class="hero-can hero-can-a" data-render="mojito-mariposa" alt=""><img class="hero-can hero-can-b" data-render="espresso-horchata" alt=""><img class="hero-can hero-can-c" data-render="maracuya-mezcal" alt=""></div>
+          <div class="hero-ticket" aria-hidden="true"><b>$65</b><span>precio inicial</span></div>
+        </section>
+        <section class="home-section reveal" id="needs">
+          <div class="section-heading"><p>Ahora sí</p><h2>¿Qué necesitas?</h2><span>Elige la situación que más se parece a lo que estás buscando.</span></div>
+          <div class="need-grid">
+            <button class="need-card need-order" data-journey="order"><small>Pedido pequeño</small><strong>Quiero pedir unas bebidas</strong><p>Para ti, una reunión o un plan sencillo. Elige sabores y ve el precio estimado.</p><i>→</i></button>
+            <button class="need-card need-event" data-journey="event"><small>Evento</small><strong>Estoy planeando un evento</strong><p>Boda, cumpleaños, reunión o evento corporativo.</p><i>→</i></button>
+            <button class="need-card need-custom" data-journey="custom"><small>Personalizadas</small><strong>Quiero latas con mi frase o identidad</strong><p>Para una boda, regalo, marca o empresa. Te ayudamos a aterrizar la idea.</p><i>→</i></button>
+          </div>
+          <button class="text-link" data-route="menu">Solo quiero explorar el menú →</button>
+        </section>
+        <section class="home-section reveal" id="favorites">
+          <div class="section-heading heading-row"><div><p>Los que más se antojan</p><h2>Favoritos.</h2></div><button data-route="menu">Ver menú</button></div>
+          <div class="auto-carousel" data-carousel="favorites"><div class="carousel-track" id="favoriteTrack"></div></div>
+        </section>
+        <section class="home-section package-section reveal" id="packages">
+          <div class="section-heading"><p>Listos para pedir</p><h2>Paquetes.</h2><span>Atajos para decidir rápido y sentir que ya tienes el plan armado.</span></div>
+          <div class="package-grid">
+            <article class="package-card lime"><small>ANTOJO. 6</small><h3>Mix para probar</h3><p>Ideal para elegir favoritos o resolver una tarde fría y bonita.</p><b>Desde $60 c/u</b><button data-route="menu">Armar mix</button></article>
+            <article class="package-card tomato"><small>EVENTO 24</small><h3>Mesa fresca</h3><p>Dos o tres sabores estrella para una reunión con buen ritmo.</p><b>Cotización guiada</b><button data-journey="event">Cotizar evento</button></article>
+            <article class="package-card rose"><small>50+</small><h3>Latas especiales</h3><p>Para boda, marca, regalo o una frase que se vuelve recuerdo.</p><b>Personalizadas</b><button data-journey="custom">Crear idea</button></article>
+          </div>
+        </section>
+        <section class="plan-marquee reveal">
+          <div><span>ANTOJO.</span><strong>perfecto para planes pequeños o grandes.</strong></div>
+          <div class="marquee-window"><div class="marquee-track"><b>BODAS</b><b>CUMPLEAÑOS</b><b>OFICINAS</b><b>WORKSHOPS</b><b>REUNIONES</b><b>ACTIVACIONES</b><b>BODAS</b><b>CUMPLEAÑOS</b><b>OFICINAS</b><b>WORKSHOPS</b></div></div>
+        </section>
+        <a class="instagram-card reveal" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">
+          <div><small>Sigue nuestra historia en Instagram</small><strong>@antojo.bebidas</strong><p>Pruebas, pedidos, nuevos sabores y cómo va creciendo este proyecto para ayudar a pagar nuestra boda.</p></div><span>↗</span>
+        </a>
+        <section class="home-section reveal" id="how">
+          <div class="section-heading"><p>Antes de terminar</p><h2>Así de fácil.</h2><span>No necesitas tener todo resuelto. Empieza por el tipo de plan y nosotros te guiamos.</span></div>
+          <div class="how-grid"><article><span>01</span><strong>Elige tu situación</strong><p>Pedido pequeño, evento o latas personalizadas.</p></article><article><span>02</span><strong>Arma tu selección</strong><p>Combina sabores y cantidades sin perder tus respuestas.</p></article><article><span>03</span><strong>Registramos y confirmamos</strong><p>Recibes un folio y te contactamos para cerrar los detalles.</p></article></div>
+        </section>
+        <section class="home-section reveal" id="faq">
+          <div class="section-heading"><p>Preguntas reales</p><h2>Antes de pedir.</h2></div>
+          <div class="faq-list">
+            <details><summary>¿Por qué empezó ANTOJO.?</summary><p>Empezó como un proyecto para construir un negocio de bebidas y ayudarnos a pagar nuestra boda. Compartimos el proceso real, desde las primeras latas hasta cada nuevo pedido.</p></details>
+            <details><summary>¿Por qué entregan principalmente los fines de semana?</summary><p>Actualmente concentramos producción y entregas para preparar lotes frescos y cuidar mejor cada bebida. Los pedidos y eventos entre semana se revisan según fecha, cantidad y disponibilidad.</p></details>
+            <details><summary>¿Cuánto duran las bebidas?</summary><p>Se entregan refrigeradas y recomendamos consumirlas lo más frescas posible. La conservación cambia según la bebida; al confirmar el pedido te indicamos el consumo recomendado para tus sabores.</p></details>
+            <details><summary>¿Qué precio tienen?</summary><p>De 1 a 5 bebidas cuestan $65 c/u; de 6 a 20, $60 c/u; y de 21 a 50, $55 c/u. Más de 50 piezas, eventos o personalizaciones pasan a cotización.</p></details>
+            <details><summary>¿Puedo mezclar sabores?</summary><p>Sí. En pedidos pequeños puedes combinar libremente. Para eventos recomendamos dos o tres sabores para facilitar producción, servicio y presentación.</p></details>
+            <details><summary>¿Puedo pedir latas con una frase o logo?</summary><p>Sí. Puedes escribir una frase, subir un logo y ver una referencia. La legibilidad, el arte final y el costo se revisan contigo antes de producir.</p></details>
+            <details><summary>¿Puedo recoger o pedir entrega?</summary><p>Puedes recoger en la zona WTC · Polyforum. La entrega se revisa desde 10 bebidas y su costo depende de la ubicación.</p></details>
+          </div>
+        </section>
+        <section class="home-section reveal">
+          <div class="section-heading"><p>Comunidad ANTOJO.</p><h2>¿Ya lo probaste?</h2></div>
+          <div class="community-grid"><article class="community-card review"><small>RESEÑAS</small><h3>Cuéntanos cómo te fue.</h3><p>Tu opinión nos ayuda a mejorar cada bebida y cada entrega.</p><div class="rating-stars"><button data-rating="1">★</button><button data-rating="2">★</button><button data-rating="3">★</button><button data-rating="4">★</button><button data-rating="5">★</button></div></article><article class="community-card club"><small>PRÓXIMAMENTE</small><h3>ANTOJO. Club</h3><p>Drops, nuevos sabores y recompensas para quienes regresan.</p><button id="clubButton">Quiero enterarme</button></article></div>
+        </section>
       </section>
-      <section class="screen" data-screen="cart"><div id="cartContent"></div></section><section class="screen" data-screen="checkout"><div id="checkoutContent"></div></section><section class="screen success-screen" data-screen="success"><div id="successContent"></div></section>
+      <section class="screen menu-screen" data-screen="menu">
+        <section class="home-menu reveal active-menu" id="menu">
+          <div class="page-head"><p class="eyebrow coral">Menú ANTOJO.</p><h1>Arma tu mix.</h1><p id="menuContext">Toca una bebida, mírala de cerca y agrega las que se te antojen.</p></div>
+          <div id="journeySummary"></div>
+          <label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="searchInput" placeholder="Buscar bebida o sabor" autocomplete="off"></label>
+          <div class="category-chips" id="categoryChips"></div>
+          <div class="menu-note">Tip ANTOJO.: para eventos elige 2 o 3 sabores estrella y suma una opción sin alcohol para que todos tengan algo rico.</div>
+          <div class="product-grid" id="productGrid"></div>
+        </section>
+      </section>
+      <section class="screen" data-screen="cart"><div id="cartContent"></div></section>
+      <section class="screen" data-screen="checkout"><div id="checkoutContent"></div></section>
+      <section class="screen success-screen" data-screen="success"><div id="successContent"></div></section>
     </main>
-    <nav class="bottom-nav" id="bottomNav" aria-label="Navegación principal"><button class="active" data-route="home" data-nav="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></button><button data-route="menu" data-nav="menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Menú</span></button><button data-route="cart" data-nav="cart"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H6M9 20h.01M17 20h.01"/></svg><i id="navCartDot"></i><span>Pedido</span></button></nav>
+    <nav class="bottom-nav" id="bottomNav" aria-label="Navegación principal">
+      <button class="active" data-route="home" data-nav="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></button>
+      <button data-route="menu" data-nav="menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Menú</span></button>
+      <button data-route="cart" data-nav="cart"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H6M9 20h.01M17 20h.01"/></svg><i id="navCartDot"></i><span>Pedido</span></button>
+    </nav>
   </div></div>
 </div>
-<div class="backdrop" id="backdrop"></div><aside class="product-sheet" id="productSheet"><div id="productSheetContent"></div></aside><div class="modal" id="flowModal"><div class="modal-card" id="flowModalContent"></div></div><div class="toast" id="toast"></div>
-<script src="/clean-v2.js?v=20260717-5"></script>
-</body></html>
+<div class="backdrop" id="backdrop"></div>
+<aside class="product-sheet" id="productSheet"><div id="productSheetContent"></div></aside>
+<div class="modal" id="flowModal"><div class="modal-card" id="flowModalContent"></div></div>
+<div class="toast" id="toast"></div>
+<script src="/clean-v2.js?v=20260717-6"></script>
+</body>
+</html>

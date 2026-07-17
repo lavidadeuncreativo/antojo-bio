@@ -26,8 +26,10 @@ assert(index.includes('/clean-v2.css'), 'El frontend limpio carga clean-v2.css')
 assert(index.includes('/clean-v2.js'), 'El frontend limpio carga clean-v2.js');
 assert(scriptSources.every(file => fs.existsSync(path.join(root, file))), 'Todos los scripts referenciados existen');
 assert(styleSources.every(file => fs.existsSync(path.join(root, file))), 'Todas las hojas de estilo referenciadas existen');
-assert(index.includes('id="menu"'), 'El menú forma parte de la portada única');
-assert(!index.includes('data-screen="menu"'), 'El menú ya no vive en una pantalla separada');
+assert(index.includes('id="menu"'), 'El menú completo sigue disponible');
+assert(index.includes('data-screen="menu"'), 'El menú vive en su propia pestaña');
+assert(index.includes('id="packages"'), 'La portada incluye paquetes listos');
+assert(index.includes('id="loader"'), 'La página tiene loader de marca');
 assert(index.includes('class="bottom-nav"'), 'La navegación inferior principal está activa');
 assert(!index.includes('v5-final.js') && !index.includes('v9-final.js'), 'Las capas funcionales antiguas ya no se cargan');
 assert(!index.includes('v4-app-01.js'), 'La aplicación anterior ya no se inicializa');
@@ -36,7 +38,10 @@ assert(cleanV2Styles.includes('contain:inline-size'), 'El carrusel no rompe el a
 assert(!cleanV2Styles.includes('.product-sheet,.modal-card{transition-duration:.001ms!important;animation-duration:.001ms!important;filter:none!important;transform:none!important}'), 'Reduced motion no rompe hojas ni modales');
 assert(cleanApp.includes("const STORE='antojo_clean_state_v3'"), 'Existe persistencia local de la nueva versión');
 assert(cleanApp.includes("fetch('/api/submit'"), 'La app registra pedidos mediante el backend');
-assert(cleanApp.includes("if(name==='menu')"), 'Los CTA del menú regresan a la portada única');
+assert(cleanApp.includes("state.screen=name"), 'Los CTA del menú navegan a la pestaña correcta');
+assert(cleanApp.includes("data-event-qty"), 'El onboarding de eventos ofrece cantidades precargadas');
+assert(cleanApp.includes("data-sheet-qty"), 'Las bebidas permiten cantidades rápidas');
+assert(cleanApp.includes("carousel.x-=dt*.0082"), 'El carrusel de favoritos acelera ligeramente');
 assert(cleanApp.includes("'/renders/11_cold_brew_vainilla.png'"), 'Cold brew usa el render correcto');
 assert(fs.existsSync(path.join(root, 'renders/03_mojito_clasico_te_de_mariposa.png')), 'Los renders reales están disponibles como assets');
 assert(cleanApp.includes('https://wa.me/525522026291'), 'WhatsApp apunta al número correcto');
