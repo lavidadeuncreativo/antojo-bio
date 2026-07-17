@@ -1,181 +1,61 @@
-name: Production smoke test
+name: Production smoke test (manual)
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - smoke-result.json
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: production-smoke
+  group: production-smoke-manual
   cancel-in-progress: true
 
 jobs:
   smoke:
+    name: Verify production without repository writes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Wait for Vercel production deployment
+      - name: Verify clean frontend
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://antojo-bio.vercel.app"
-          for attempt in $(seq 1 36); do
-            if curl -fsS "$BASE_URL/api/health" > /tmp/health.json; then
-              if grep -q '"ready":true' /tmp/health.json; then
-                curl -fsS "$BASE_URL/api/config" > /tmp/config.json || true
-                exit 0
-              fi
-            fi
-            sleep 5
-          done
-          echo "Production is deployed, but the operational backend is not ready"
-          cat /tmp/health.json 2>/dev/null || true
-          exit 1
-
-      - name: Verify application assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsS "https://antojo-bio.vercel.app/" > /tmp/home.html
-          grep -q "v6-final.js" /tmp/home.html
-          curl -fsS "https://antojo-bio.vercel.app/v6-final.js" > /tmp/v6-final.js
-          node --check /tmp/v6-final.js
-
-      - name: Register a technical test order
-        shell: bash
-        run: |
-          set -euo pipefail
-          TODAY=$(date -u +%Y%m%d)
-          CODE=$(printf '%04X' "$((RANDOM % 65536))")
-          FOLIO="ANT-${TODAY}-${CODE}"
-          echo "$FOLIO" > /tmp/folio.txt
-          REQUIRED=$(date -u -d '+5 days' +%F)
-          cat > /tmp/payload.json <<JSON
-          {
-            "folio":"${FOLIO}",
-            "type":"order",
-            "createdAt":"$(date -u +%FT%TZ)",
-            "name":"PRUEBA TÉCNICA ANTOJO",
-            "phone":"5522026291",
-            "consent":true,
-            "items":[{"id":"espresso-horchata","name":"Espresso horchata","qty":1,"alcohol":false}],
-            "units":1,
-            "targetQuantity":1,
-            "occasion":"fin",
-            "fulfillment":"wtc",
-            "requiredDate":"${REQUIRED}",
-            "requiredTime":"12:00",
-            "dateUnknown":false,
-            "address":"",
-            "shippingFee":0,
-            "personalization":"normal",
-            "personalizationText":"",
-            "unitPrice":65,
-            "totalEstimate":65,
-            "notes":"Prueba automática de pedido. Puede marcarse como descartada.",
-            "utm":{"source":"github-actions","medium":"smoke-test","campaign":"production-v6"},
-            "sessionId":"github-actions-smoke-order",
-            "eventTrail":[],
-            "pageUrl":"https://antojo-bio.vercel.app/",
-            "userAgent":"GitHub Actions",
-            "website":"",
-            "whatsappOpened":false
-          }
-          JSON
-          HTTP_CODE=$(curl -sS -o /tmp/register.json -w '%{http_code}' -X POST "https://antojo-bio.vercel.app/api/submit" -H 'Content-Type: application/json' --data-binary @/tmp/payload.json)
-          test "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "200"
-          grep -q '"ok":true' /tmp/register.json
-
-      - name: Register an event quote with logo
-        shell: bash
-        run: |
-          set -euo pipefail
-          TODAY=$(date -u +%Y%m%d)
-          CODE=$(printf '%04X' "$((RANDOM % 65536))")
-          FOLIO="ANT-${TODAY}-${CODE}"
-          echo "$FOLIO" > /tmp/event-folio.txt
-          cat > /tmp/event-payload.json <<JSON
-          {
-            "folio":"${FOLIO}",
-            "type":"quote",
-            "createdAt":"$(date -u +%FT%TZ)",
-            "name":"PRUEBA EVENTO Y LOGO ANTOJO",
-            "phone":"5522026291",
-            "consent":true,
-            "items":[{"id":"mojito-mariposa","name":"Mojito mariposa","qty":50,"alcohol":true}],
-            "units":50,
-            "targetQuantity":50,
-            "occasion":"event",
-            "fulfillment":"event",
-            "requiredDate":"",
-            "requiredTime":"",
-            "dateUnknown":true,
-            "address":"",
-            "shippingFee":0,
-            "personalization":"logo",
-            "personalizationText":"Prueba técnica de carga de logo",
-            "unitPrice":null,
-            "totalEstimate":null,
-            "notes":"Prueba automática de evento y logo. Puede marcarse como descartada.",
-            "eventType":"Boda",
-            "eventGuests":50,
-            "eventVenue":"",
-            "eventVenueName":"",
-            "eventVenueUnknown":true,
-            "eventPlaceId":"",
-            "eventLat":"",
-            "eventLng":"",
-            "eventPackage":"Personalizado",
-            "logoData":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Zl3sAAAAASUVORK5CYII=",
-            "logoName":"smoke-logo.png",
-            "logoMime":"image/png",
-            "utm":{"source":"github-actions","medium":"smoke-test","campaign":"production-v6-logo"},
-            "sessionId":"github-actions-smoke-event",
-            "eventTrail":[],
-            "pageUrl":"https://antojo-bio.vercel.app/",
-            "userAgent":"GitHub Actions",
-            "website":"",
-            "whatsappOpened":false
-          }
-          JSON
-          HTTP_CODE=$(curl -sS -o /tmp/event-register.json -w '%{http_code}' -X POST "https://antojo-bio.vercel.app/api/submit" -H 'Content-Type: application/json' --data-binary @/tmp/event-payload.json)
-          test "$HTTP_CODE" = "201" -o "$HTTP_CODE" = "200"
-          grep -q '"ok":true' /tmp/event-register.json
-          grep -q '"logoSaved":true' /tmp/event-register.json
-
-      - name: Write auditable result
-        if: always()
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, pathlib, datetime
-          def read_json(path):
-              try: return json.loads(pathlib.Path(path).read_text())
-              except Exception: return None
-          def read_text(path):
-              try: return pathlib.Path(path).read_text().strip()
-              except Exception: return ''
-          result={
-              "checkedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              "productionUrl": "https://antojo-bio.vercel.app",
-              "health": read_json('/tmp/health.json'),
-              "maps": read_json('/tmp/config.json'),
-              "orderRegistration": read_json('/tmp/register.json'),
-              "orderFolio": read_text('/tmp/folio.txt'),
-              "eventRegistration": read_json('/tmp/event-register.json'),
-              "eventFolio": read_text('/tmp/event-folio.txt')
-          }
-          pathlib.Path('smoke-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-          PY
-          git config user.name "antojo-smoke-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add smoke-result.json
-          if ! git diff --cached --quiet; then
-            git commit -m "test: record production smoke result [skip ci]"
-            git push
+          curl --location --fail --silent --show-error --retry 8 --retry-delay 4 \
+            'https://antojo-bio.vercel.app/' > homepage.html
+          grep -q '/clean.css' homepage.html
+          grep -q '/clean.js' homepage.html
+          if grep -q 'v9-final.js' homepage.html; then
+            echo 'La versión antigua continúa cargada.'
+            exit 1
           fi
+
+      - name: Verify release marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 8 --retry-delay 4 \
+            'https://antojo-bio.vercel.app/version' > version.json
+          cat version.json
+          node -e "const x=require('./version.json');if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1)"
+
+      - name: Verify backend and Notion
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 8 --retry-delay 4 \
+            'https://antojo-bio.vercel.app/api/health' > health.json
+          cat health.json
+          node -e "const x=require('./health.json');if(!x.ok||!x.notionConfigured||!x.notionDataSourceAccessible)process.exit(1)"
+
+      - name: Summary
+        run: |
+          {
+            echo '## ANTOJO production smoke test'
+            echo ''
+            echo '- Frontend limpio verificado'
+            echo '- Release verificado'
+            echo '- Backend y Notion verificados'
+            echo '- No se crearon pedidos de prueba'
+            echo '- No se escribió ningún archivo ni commit en el repositorio'
+          } >> "$GITHUB_STEP_SUMMARY"
