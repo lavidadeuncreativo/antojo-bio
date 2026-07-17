@@ -4,7 +4,7 @@ module.exports = function handler(req, res) {
   res.statusCode = 200;
   res.end(JSON.stringify({
     ok: true,
-    release: 'phase1-20260717-3',
+    release: 'phase1-20260717-4',
     commit: process.env.VERCEL_GIT_COMMIT_SHA || null,
     branch: process.env.VERCEL_GIT_COMMIT_REF || null,
     environment: process.env.VERCEL_ENV || null,
