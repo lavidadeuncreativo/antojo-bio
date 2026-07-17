@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "release": "clean-20260716-4",
-  "source": "github-user-merge",
+  "release": "clean-20260717-1",
+  "source": "github-main",
   "expectedEntryPoints": ["index.html", "clean.css", "clean.js"],
   "legacyLayersLoaded": false
 }

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f6f0e7">
-  <meta name="antojo-release" content="clean-20260716-2">
+  <meta name="antojo-release" content="clean-20260717-1">
   <meta name="description" content="ANTOJO. Bebidas frías listas para tomar. Arma un pedido pequeño, planea un evento o cotiza latas personalizadas.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_MX">
@@ -14,7 +14,8 @@
   <title>ANTOJO. — Porque cuando se antoja, se antoja</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/favicon.svg">
-  <link rel="stylesheet" href="/clean.css?v=20260716-2">
+  <link rel="stylesheet" href="/clean.css?v=20260717-1">
+  <style>#appMain{padding-bottom:28px}.home-menu{scroll-margin-top:74px;padding-top:18px}</style>
   <script>
     (function(){
       try{
@@ -24,7 +25,7 @@
     })();
   </script>
 </head>
-<body data-release="clean-20260716-2">
+<body data-release="clean-20260717-1">
   <div class="showcase">
     <aside class="brand-stage" aria-hidden="true">
       <div class="brand-logo">ANTOJO.</div>
@@ -57,7 +58,7 @@
                 <p class="hero-kicker"><i></i>Porque cuando se antoja, se antoja...</p>
                 <h1>¿Qué se te<br>antoja hoy?</h1>
                 <p>Bebidas frías, listas para tomar y hechas para tu plan.</p>
-                <button class="black-button" data-route="menu">Ver menú <span>→</span></button>
+                <button class="black-button" data-scroll="menu">Ver menú <span>→</span></button>
               </div>
               <div class="hero-cans" aria-hidden="true">
                 <img class="hero-can hero-can-a" data-render="mojito-mariposa" alt="">
@@ -83,7 +84,7 @@
                   <small>Personalizadas</small><strong>Quiero latas con mi idea</strong><p>Frase, nombre, logo o identidad para tu ocasión.</p><i>→</i>
                 </button>
               </div>
-              <button class="text-link" data-route="menu">Solo quiero explorar el menú →</button>
+              <button class="text-link" data-scroll="menu">Solo quiero explorar el menú →</button>
             </section>
 
             <section class="home-section reveal" id="how">
@@ -95,8 +96,17 @@
               </div>
             </section>
 
+            <section class="home-menu reveal" id="menu">
+              <div class="page-head"><p class="eyebrow coral">Menú ANTOJO.</p><h1>Arma tu mix.</h1><p id="menuContext">Toca una bebida para verla y agregarla.</p></div>
+              <div id="journeySummary"></div>
+              <label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="searchInput" placeholder="Buscar bebida o sabor" autocomplete="off"></label>
+              <div class="category-chips" id="categoryChips"></div>
+              <div class="menu-note">Para eventos recomendamos elegir 2 o máximo 3 sabores para cuidar producción y presentación.</div>
+              <div class="product-grid" id="productGrid"></div>
+            </section>
+
             <section class="home-section reveal" id="favorites">
-              <div class="section-heading heading-row"><div><p>Los que más se antojan</p><h2>Favoritos.</h2></div><button data-route="menu">Ver menú</button></div>
+              <div class="section-heading heading-row"><div><p>Los que más se antojan</p><h2>Favoritos.</h2></div><button data-scroll="menu">Ver menú</button></div>
               <div class="auto-carousel" data-carousel="favorites"><div class="carousel-track" id="favoriteTrack"></div></div>
             </section>
 
@@ -128,25 +138,11 @@
             </section>
           </section>
 
-          <section class="screen" data-screen="menu">
-            <div class="page-head"><p class="eyebrow coral">Menú ANTOJO.</p><h1>Arma tu mix.</h1><p id="menuContext">Toca una bebida para verla y agregarla.</p></div>
-            <div id="journeySummary"></div>
-            <label class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="searchInput" placeholder="Buscar bebida o sabor" autocomplete="off"></label>
-            <div class="category-chips" id="categoryChips"></div>
-            <div class="menu-note">Para eventos recomendamos elegir 2 o máximo 3 sabores para cuidar producción y presentación.</div>
-            <div class="product-grid" id="productGrid"></div>
-          </section>
-
           <section class="screen" data-screen="cart"><div id="cartContent"></div></section>
           <section class="screen" data-screen="checkout"><div id="checkoutContent"></div></section>
           <section class="screen success-screen" data-screen="success"><div id="successContent"></div></section>
         </main>
 
-        <nav class="bottom-nav" aria-label="Navegación principal">
-          <button class="active" data-route="home"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9H15v-6H9v6H3z"/></svg><span>Inicio</span></button>
-          <button data-route="menu"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Menú</span></button>
-          <button data-route="cart"><svg viewBox="0 0 24 24"><path d="M3 4h2l2 12h10l2-8H6M9 20h.01M17 20h.01"/></svg><span id="navCartLabel">Pedido</span><i id="navDot"></i></button>
-        </nav>
       </div>
     </div>
   </div>
@@ -157,6 +153,6 @@
   <div class="toast" id="toast" role="status"></div>
 
   <script src="/v4-render-01.js"></script><script src="/v4-render-02.js"></script><script src="/v4-render-03.js"></script><script src="/v4-render-04.js"></script><script src="/v4-render-05.js"></script><script src="/v4-render-06.js"></script><script src="/v4-render-07.js"></script><script src="/v4-render-08.js"></script><script src="/v4-render-09.js"></script>
-  <script src="/clean.js?v=20260716-2"></script>
+  <script src="/clean.js?v=20260717-1"></script>
 </body>
 </html>

@@ -43,8 +43,21 @@ function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt
 function folio(){const d=new Date(),date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('');return `ANT-${date}-${Math.random().toString(36).slice(2,6).toUpperCase()}`}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)}
 function fillStaticImages(){$$('[data-render]').forEach(img=>{img.src=renderSrc(img.dataset.render);img.onerror=()=>img.closest('.desktop-can,.hero-cans')?.classList.add('image-fallback')})}
-function route(name){closeSheet();closeFlow();state.screen=name;saveState();$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.route===name));if(name==='menu')renderMenu();if(name==='cart')renderCart();if(name==='checkout')renderCheckout();if(name==='success')renderSuccess();window.scrollTo({top:0,behavior:'smooth'})}
-function updateCartUI(){const n=qty();$('#cartBadge').textContent=n;$('#navDot').classList.toggle('show',n>0);$('#navCartLabel').textContent=isQuote()?'Cotización':'Pedido'}
+function route(name){
+ closeSheet();closeFlow();
+ if(name==='menu'){
+  state.screen='home';saveState();
+  $$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen==='home'));
+  renderMenu();
+  requestAnimationFrame(()=>document.getElementById('menu')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  return;
+ }
+ state.screen=name;saveState();
+ $$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+ if(name==='cart')renderCart();if(name==='checkout')renderCheckout();if(name==='success')renderSuccess();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateCartUI(){const n=qty();const badge=$('#cartBadge');if(badge)badge.textContent=n}
 function setCart(id,n){if(n<=0)delete state.cart[id];else state.cart[id]=Math.min(999,Math.max(1,Math.round(n)));saveState();updateCartUI()}
 function add(id,n=1){setCart(id,(state.cart[id]||0)+n)}
 function renderFavorites(){const ids=['espresso-horchata','mojito-mariposa','maracuya-limon','mezcalita-jamaica','horchata','clericot'];const all=[...ids,...ids];$('#favoriteTrack').innerHTML=all.map(id=>{const p=product(id);return `<button class="mini-product" data-product="${id}"><span class="media" style="background:${p.color}"><img src="${renderSrc(id)}" alt="${esc(p.name)}"></span><b>${esc(p.name)}</b><small>${esc(p.label)}</small></button>`}).join('')}

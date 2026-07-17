@@ -1,140 +1,62 @@
-name: Publish current ANTOJO production domain
+name: Verify ANTOJO production (manual)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/publish-current-domain.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: antojo-current-production-domain
-  cancel-in-progress: true
-
 jobs:
-  publish:
-    name: Deploy clean frontend and update antojo-bio.vercel.app
+  verify:
+    name: Verify current production
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 10
 
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Validate clean release
-        shell: bash
+      - name: Validate repository release
         run: |
           set -euo pipefail
-          grep -q '/clean.css' index.html
-          grep -q '/clean.js' index.html
-          if grep -q 'v9-final.js' index.html; then
-            echo 'Legacy frontend detected in index.html'
-            exit 1
-          fi
           node --check clean.js
-          test -f version.json
+          node tests/smoke.js
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Authorize Vercel
-        shell: bash
-        run: |
-          echo '============================================================'
-          echo 'APRUEBA EL ENLACE DE VERCEL QUE APARECERÁ ABAJO.'
-          echo 'DESPUÉS DE APROBAR, EL RESTO ES AUTOMÁTICO.'
-          echo '============================================================'
-          timeout 12m script -q -e -c "vercel login --no-color" /dev/null
-
-      - name: Link the project that owns the deployment
-        shell: bash
+      - name: Verify public frontend
         run: |
           set -euo pipefail
-          vercel project inspect antojo --scope la-vida-de-un-creativos-projects
-          vercel link --yes --project antojo --scope la-vida-de-un-creativos-projects
-          cat .vercel/project.json
-
-      - name: Pull production configuration
-        run: vercel pull --yes --environment=production
-
-      - name: Build production output
-        run: vercel build --prod
-
-      - name: Create production deployment
-        id: deploy
-        shell: bash
-        run: |
-          set -euo pipefail
-          DEPLOY_URL=$(vercel deploy --prebuilt --prod --force | tail -n 1 | tr -d '\r')
-          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
-          echo "Deployment creado: $DEPLOY_URL"
-
-      - name: Promote deployment
-        shell: bash
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          set -euo pipefail
-          vercel promote "$DEPLOY_URL" --yes --timeout=5m
-
-      - name: Assign the public domain explicitly
-        shell: bash
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          set -euo pipefail
-          vercel alias set "$DEPLOY_URL" antojo-bio.vercel.app
-          vercel alias ls | grep -F 'antojo-bio.vercel.app'
-
-      - name: Verify the generated deployment
-        shell: bash
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          set -euo pipefail
-          sleep 5
-          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 "$DEPLOY_URL/version" > deployment-version.json
-          node -e "const x=require('./deployment-version.json');if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1);console.log('Deployment:',x.release)"
-          curl --location --fail --silent --show-error --retry 8 --retry-delay 4 "$DEPLOY_URL/api/health" > deployment-health.json
-          node -e "const x=require('./deployment-health.json');if(!x.ok||!x.notionConfigured||!x.notionDataSourceAccessible)process.exit(1);console.log('Backend and Notion ready')"
-
-      - name: Verify the public domain
-        shell: bash
-        run: |
-          set -euo pipefail
-          sleep 8
           CACHE_BUSTER=$(date +%s)
-          curl --location --fail --silent --show-error --retry 12 --retry-delay 5 -H 'Cache-Control: no-cache' "https://antojo-bio.vercel.app/?release=$CACHE_BUSTER" > public-homepage.html
-          grep -q '/clean.css' public-homepage.html
-          grep -q '/clean.js' public-homepage.html
-          if grep -q 'v9-final.js' public-homepage.html; then
-            echo 'The old frontend is still attached to the public domain.'
+          curl --location --fail --silent --show-error --retry 12 --retry-delay 5 \
+            -H 'Cache-Control: no-cache' \
+            "https://antojo-bio.vercel.app/?release=$CACHE_BUSTER" > public-homepage.html
+          grep -q 'clean-20260717-1' public-homepage.html
+          grep -q 'id="menu"' public-homepage.html
+          if grep -q 'class="bottom-nav"' public-homepage.html; then
+            echo 'The old three-screen navigation is still in production.'
             exit 1
           fi
-          curl --location --fail --silent --show-error --retry 12 --retry-delay 5 -H 'Cache-Control: no-cache' "https://antojo-bio.vercel.app/version?release=$CACHE_BUSTER" > public-version.json
-          node -e "const x=require('./public-version.json');if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1);console.log('Public domain:',x.release)"
-          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 'https://antojo-bio.vercel.app/api/health' > public-health.json
-          node -e "const x=require('./public-health.json');if(!x.ok||!x.notionConfigured||!x.notionDataSourceAccessible)process.exit(1);console.log('Production verified end to end')"
+
+      - name: Verify public release and backend
+        run: |
+          set -euo pipefail
+          curl --location --fail --silent --show-error --retry 12 --retry-delay 5 \
+            'https://antojo-bio.vercel.app/api/version' > public-version.json
+          node -e "const x=require('./public-version.json');if(!x.ok||x.release!=='clean-20260717-1')process.exit(1);console.log('Public release:',x.release)"
+          curl --location --fail --silent --show-error --retry 10 --retry-delay 4 \
+            'https://antojo-bio.vercel.app/api/health' > public-health.json
+          node -e "const x=require('./public-health.json');if(!x.ok||!x.ready||!x.notionConfigured||!x.notionDataSourceAccessible)process.exit(1);console.log('Backend and Notion ready')"
 
       - name: Summary
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
         run: |
           {
-            echo '## ANTOJO production published'
+            echo '## ANTOJO production verified'
             echo ''
-            echo "- Deployment: $DEPLOY_URL"
             echo '- Public domain: https://antojo-bio.vercel.app/'
-            echo '- Clean frontend verified'
+            echo '- Single-page frontend verified'
             echo '- Backend and Notion verified'
-            echo '- Public domain explicitly assigned to the new deployment'
           } >> "$GITHUB_STEP_SUMMARY"

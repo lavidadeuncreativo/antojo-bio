@@ -20,11 +20,15 @@ const submit = read('api/submit.js');
 
 assert(index.includes('/clean.css'), 'El frontend limpio carga clean.css');
 assert(index.includes('/clean.js'), 'El frontend limpio carga clean.js');
+assert(index.includes('id="menu"'), 'El menú forma parte de la portada única');
+assert(!index.includes('data-screen="menu"'), 'El menú ya no vive en una pantalla separada');
+assert(!index.includes('class="bottom-nav"'), 'La navegación inferior de tres pantallas fue retirada');
 assert(!index.includes('v5-final.js') && !index.includes('v9-final.js'), 'Las capas funcionales antiguas ya no se cargan');
 assert(!index.includes('v4-app-01.js'), 'La aplicación anterior ya no se inicializa');
 assert(cleanStyles.length > 1000, 'La hoja de estilos limpia contiene la interfaz completa');
 assert(cleanApp.includes("const STORE='antojo_clean_state_v1'"), 'Existe persistencia local de la nueva versión');
 assert(cleanApp.includes("fetch('/api/submit'"), 'La app registra pedidos mediante el backend');
+assert(cleanApp.includes("if(name==='menu')"), 'Los CTA del menú regresan a la portada única');
 assert(cleanApp.includes('https://wa.me/5215522026291'), 'WhatsApp apunta al número correcto');
 assert(cleanApp.includes("if(n<=5)return{unit:65"), 'Precio de 1 a 5 piezas configurado');
 assert(cleanApp.includes("if(n<=20)return{unit:60"), 'Precio de 6 a 20 piezas configurado');

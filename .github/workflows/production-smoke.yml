@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           curl --location --fail --silent --show-error --retry 8 --retry-delay 4 \
-            'https://antojo-bio.vercel.app/version' > version.json
+            'https://antojo-bio.vercel.app/api/version' > version.json
           cat version.json
           node -e "const x=require('./version.json');if(!x.ok||!String(x.release||'').startsWith('clean-'))process.exit(1)"
 
