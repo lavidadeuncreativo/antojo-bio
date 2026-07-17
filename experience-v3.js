@@ -143,7 +143,7 @@
         <h2>Sigue el antojo.</h2>
         <span>Nuevos sabores, reseñas y pequeños avances del proyecto, en un solo lugar.</span>
       </div>
-      <div class="widget-stack" aria-roledescription="carrusel" aria-label="Comunidad ANTOJO.">
+      <div class="widget-stack" role="region" aria-roledescription="carrusel" aria-label="Comunidad ANTOJO.">
         <article class="social-widget widget-instagram is-active" data-widget-index="0" aria-hidden="false">
           <div class="widget-topline"><span>Instagram</span><i>01</i></div>
           <div>
@@ -158,7 +158,7 @@
           <div>
             <small>Lo que nos dicen</small>
             <div class="widget-stars" aria-label="Cinco estrellas">★★★★★</div>
-            <blockquote>“Llegaron frías, se veían increíbles y todos preguntaron por las latas.”</blockquote>
+            <p class="widget-review-copy">Cuéntanos qué sabor pediste, cómo llegó y qué repetirías.</p>
           </div>
           <button type="button" data-rating="5">Contar mi experiencia <span>→</span></button>
         </article>
@@ -379,6 +379,10 @@
     document.addEventListener('visibilitychange',()=>{
       if(document.hidden)window.clearInterval(socialTimer);
       else restartSocialRotation();
+    });
+
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&$('#flowModal')?.classList.contains('experience-order-flow'))closeOrderExperience();
     });
   }
 
