@@ -1,6 +1,11 @@
 (()=>{
   'use strict';
 
+  const style=document.createElement('style');
+  style.dataset.softMobileGuard='true';
+  style.textContent='@media(max-width:600px){.hero-v7-copy h1{max-width:none!important}.hero-v7-copy h1 span{white-space:nowrap}}';
+  document.head.appendChild(style);
+
   const apply=()=>{
     document.documentElement.classList.add('v7-soft-mobile');
 
