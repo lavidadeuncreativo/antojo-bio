@@ -1,0 +1,39 @@
+name: Validate ANTOJO v11
+
+on:
+  push:
+    branches:
+      - agent/antojo-v11-clean-rebuild
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build verified application
+        run: node build.js
+      - name: Validate generated JavaScript
+        run: node --check dist/app.js
+      - name: Validate generated files
+        run: |
+          test -s dist/index.html
+          test -s dist/app.css
+          test -s dist/app.js
+          test -s dist/pricing.js
+          test -d dist/renders
+          ! grep -q "experience-v" dist/index.html
+          grep -q "antojo-app-v11" dist/index.html
+      - name: Print build inventory
+        run: find dist -maxdepth 2 -type f -printf '%p %s bytes\n' | sort | head -80
