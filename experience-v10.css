@@ -4,8 +4,8 @@
 :root{--v10-ease:cubic-bezier(.16,1,.3,1)}
 
 .loader-v10{position:fixed!important;inset:0!important;z-index:10000!important;display:grid!important;place-items:center!important;background:#fffaf3!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition:opacity .55s ease,filter .55s ease,visibility 0s .55s!important}
-.loader-v10.hide:not(.v10-done){opacity:1!important;visibility:visible!important;pointer-events:auto!important}
-.loader-v10.v10-leaving{opacity:0!important;filter:blur(22px)!important;transform:scale(1.02)}
+.loader-v10.hide:not(.v10-done):not(.v10-leaving){opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.loader-v10.v10-leaving,.loader-v10.hide.v10-leaving:not(.v10-done){opacity:0!important;filter:blur(22px)!important;transform:scale(1.02)}
 .loader-v10.v10-done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 .loader-v10-word{display:flex;color:#d33622;font-size:clamp(62px,11vw,150px);font-weight:900;line-height:.8;letter-spacing:-.085em;perspective:1300px}
 .loader-v10-word span{display:block;opacity:0;filter:blur(20px);transform:translateY(28px) rotateX(65deg) scale(.9);transform-origin:50% 100%;animation:v10Letter 1.45s var(--v10-ease) both;animation-delay:calc(var(--i)*75ms)}
