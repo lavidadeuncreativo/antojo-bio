@@ -1,67 +1,46 @@
-# ANTOJO. web app
+# ANTOJO. biolink
 
-Web app mobile-first para explorar el menú, armar un pedido o solicitar una cotización para un evento.
+Experiencia web responsive para convertir el enlace de Instagram de ANTOJO. en una ruta clara hacia pedido, menú, cotización de eventos, dinámicas y recompensas.
 
-## Funciones principales
+## Experiencia principal
 
-- Catálogo visual de 18 bebidas.
-- Flujo separado entre **Armar mi pedido** y **Solicitar cotización**.
-- Cantidades rápidas para eventos: 50, 100, 200 u otra cantidad.
-- Ajuste individual de piezas por sabor.
-- Precios públicos: 1–5 a $65 c/u, 6–20 a $60 c/u y 21–50 a $55 c/u.
-- A partir de 51 piezas o con personalización se solicita cotización especial.
-- Recolección en WTC, entrega a domicilio desde 10 piezas y logística para evento.
-- Estimador de envío dentro del checkout.
-- Validación para alcohol, anticipación mínima y consentimiento de privacidad.
-- Persistencia local: el carrito sobrevive a recargas y cierres.
-- Folio único para cada solicitud.
-- Pedido o cotización prellenada para WhatsApp al `+52 55 2202 6291`.
-- Cola de respaldo: si Notion no responde, la solicitud queda pendiente y se reintenta.
-- Favicon, manifest, service worker, animaciones blur y slider automático.
+- Inicio tipo biolink con cinco acciones concretas.
+- Acceso directo a WhatsApp con mensajes prellenados.
+- Menú editorial de 18 bebidas, sin fondos pesados detrás de las latas.
+- Filtros por categoría y buscador en desktop.
+- Selector de cantidades con estimación de precio por volumen.
+- Onboarding de tres pasos para cotizar eventos.
+- Sección de dinámicas para activaciones y contenido.
+- Primera versión visual del programa de recompensas.
+- Navegación móvil fija y menú lateral en desktop.
+- Loader con salida garantizada para evitar pantallas bloqueadas.
+- Compatibilidad con reducción de movimiento y etiquetas accesibles.
 
-## Integración con Notion
+## Arquitectura
 
-Las solicitudes se guardan en la base privada **13 — Solicitudes web** del sistema ANTOJO. OS.
+La aplicación quedó intencionalmente simple y mantenible:
 
-El backend vive en `api/submit.js` y usa una variable protegida de Vercel:
+- `index.html`: estructura y contenido de las cinco rutas.
+- `app.css`: sistema visual y comportamiento responsive.
+- `app.js`: navegación, menú, selección, cotización y WhatsApp.
+- `renders/`: imágenes de producto existentes.
+- `build.js`: copia los archivos publicados a `dist/`.
+- `vercel.json`: configuración del despliegue estático.
 
-```text
-NOTION_TOKEN=secret_de_la_integracion
+No usa frameworks, bundles comprimidos ni módulos generados. El objetivo es que cualquier ajuste futuro sea fácil de encontrar y revisar.
+
+## Desarrollo
+
+```bash
+npm test
 ```
 
-El identificador de la base ya está configurado. Puede sobrescribirse opcionalmente con:
-
-```text
-NOTION_DATA_SOURCE_ID=119298bb-476d-40f3-b8f0-eab4c5bd5d8a
-```
-
-La integración de Notion debe tener permiso para insertar contenido y acceso explícito a la base. El token nunca debe colocarse en archivos del repositorio.
-
-La ruta `/api/health` indica si el secreto está configurado, sin exponerlo.
+El comando valida la sintaxis de JavaScript y genera la carpeta `dist/`.
 
 ## Publicación
 
-Sitio estático con funciones de servidor compatible con Vercel. El punto de entrada es `index.html` y las rutas bajo `api/` se publican como Vercel Functions.
+Vercel ejecuta `node build.js` y publica `dist/`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Flavidadeuncreativo%2Fantojo-bio)
+## WhatsApp
 
-## Validación automática
-
-Cada cambio en `main` ejecuta:
-
-- Comprobación de sintaxis de todos los archivos JavaScript.
-- Pruebas estáticas de precios, WhatsApp, persistencia y backend.
-- Despliegue automático en Vercel.
-
-## Estructura
-
-- `index.html`: estructura principal.
-- `v4-styles-*.css`: interfaz responsiva y animaciones base.
-- `v4-render-*.js`: renders optimizados de las bebidas.
-- `v4-app-*.js`: catálogo, precios, carrito, cotización, envío y checkout.
-- `v5-final.css` y `v5-final.js`: persistencia, privacidad, folios, validaciones y sincronización.
-- `api/submit.js`: respaldo seguro en Notion.
-- `api/health.js`: estado de la integración.
-- `tests/smoke.js`: validaciones de lanzamiento.
-- `favicon.svg`, `manifest.webmanifest` y `sw.js`: instalación y experiencia web app.
-- `vercel.json`: configuración para publicación.
+El sitio está conectado al número de ANTOJO. `+52 55 2202 6291`. El valor vive en `CONFIG.whatsappNumber`, al inicio de `app.js`, usando formato internacional sin `+` ni espacios.
