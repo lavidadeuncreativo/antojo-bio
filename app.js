@@ -3,7 +3,9 @@
 
   const CONFIG = {
     whatsappNumber: '525522026291',
-    instagram: 'https://www.instagram.com/antojo.bebidas/'
+    instagram: 'https://www.instagram.com/antojo.bebidas/',
+    googleReview: 'https://www.google.com/maps/search/?api=1&query=ANTOJO%20bebidas%20CDMX',
+    wtc: { lat: 19.3934, lon: -99.1748 }
   };
 
   const ROUTE_LABELS = {
@@ -61,9 +63,11 @@
   ];
 
   const PACKAGES = [
-    { quantity: 50, label: 'Pack 50', detail: 'Ideal para reuniones y cumpleaños', price: 53 },
-    { quantity: 100, label: 'Pack 100', detail: 'Para eventos medianos y equipos', price: 52 },
-    { quantity: 150, label: 'Pack 150', detail: 'Mejor precio por volumen', price: 50 }
+    { quantity: 50, label: 'Pack 50', detail: 'Reuniones y cumpleaños', price: 60 },
+    { quantity: 100, label: 'Pack 100', detail: 'Eventos medianos', price: 55 },
+    { quantity: 150, label: 'Pack 150', detail: 'Precio preferente', price: 53 },
+    { quantity: 250, label: 'Pack 250', detail: 'Activaciones y equipos', price: 52 },
+    { quantity: 500, label: 'Pack 500', detail: 'Producción de alto volumen', price: 50 }
   ];
 
   const PACKAGE_PRODUCTS = [
@@ -75,12 +79,13 @@
     route: 'inicio',
     filter: 'all',
     search: '',
-    quantities: loadJson('antojo-selection-v14', loadJson('antojo-selection-v13', {})),
-    order: loadJson('antojo-order-v1', {
+    quantities: loadJson('antojo-selection-v15', loadJson('antojo-selection-v14', {})),
+    order: loadJson('antojo-order-v2', {
       packageTarget: 0,
       personalized: false,
       fulfillment: 'pickup',
-      postalCode: ''
+      postalCode: '',
+      shipping: { status: 'idle', fee: 0, distance: 0, label: '' }
     }),
     event: {
       step: 1,
@@ -94,6 +99,10 @@
       notes: ''
     }
   };
+
+  if (!state.order.shipping || typeof state.order.shipping !== 'object') {
+    state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
+  }
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -112,8 +121,8 @@
 
   function saveState() {
     try {
-      localStorage.setItem('antojo-selection-v14', JSON.stringify(state.quantities));
-      localStorage.setItem('antojo-order-v1', JSON.stringify(state.order));
+      localStorage.setItem('antojo-selection-v15', JSON.stringify(state.quantities));
+      localStorage.setItem('antojo-order-v2', JSON.stringify(state.order));
     } catch {
       // The experience remains usable without local storage.
     }
@@ -135,7 +144,7 @@
     node.textContent = message;
     node.classList.add('is-visible');
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => node.classList.remove('is-visible'), 2800);
+    toast.timer = setTimeout(() => node.classList.remove('is-visible'), 3000);
   }
 
   function finishLoader() {
@@ -148,10 +157,10 @@
 
   function bootLoader() {
     const started = performance.now();
-    const complete = () => setTimeout(finishLoader, Math.max(0, 700 - (performance.now() - started)));
+    const complete = () => setTimeout(finishLoader, Math.max(0, 650 - (performance.now() - started)));
     if (document.readyState === 'complete') complete();
     else window.addEventListener('load', complete, { once: true });
-    setTimeout(finishLoader, 1800);
+    setTimeout(finishLoader, 1700);
   }
 
   function normalizeRoute(value) {
@@ -221,24 +230,17 @@
 
   function standardUnitPrice(total) {
     if (total <= 5) return 65;
-    if (total <= 10) return 60;
-    if (total <= 20) return 58;
-    if (total <= 49) return 55;
-    if (total <= 99) return 53;
-    if (total <= 149) return 52;
+    if (total <= 19) return 63;
+    if (total <= 99) return 60;
+    if (total <= 149) return 55;
+    if (total <= 199) return 53;
+    if (total <= 499) return 52;
     return 50;
   }
 
-  function personalizedUnitPrice(total) {
-    if (total < 50) return null;
-    if (total <= 99) return 65;
-    if (total <= 149) return 62;
-    return 60;
-  }
-
   function activeUnitPrice(total) {
-    if (state.order.personalized) return personalizedUnitPrice(total);
-    return standardUnitPrice(total);
+    if (!total) return 0;
+    return standardUnitPrice(total) + (state.order.personalized ? 10 : 0);
   }
 
   function selectionItems() {
@@ -251,19 +253,25 @@
     return selectionItems().reduce((sum, item) => sum + item.quantity, 0);
   }
 
-  function updateQuantity(id, delta) {
-    const next = Math.max(0, Math.min(999, Number(state.quantities[id] || 0) + delta));
+  function setQuantity(id, value) {
+    const next = Math.max(0, Math.min(9999, Math.round(Number(value) || 0)));
     if (next === 0) delete state.quantities[id];
     else state.quantities[id] = next;
     if (selectionTotal() < 50 && state.order.personalized) state.order.personalized = false;
     saveState();
+    scheduleShipping();
     renderMenu();
+  }
+
+  function updateQuantity(id, delta) {
+    setQuantity(id, Number(state.quantities[id] || 0) + delta);
   }
 
   function clearSelection() {
     state.quantities = {};
     state.order.packageTarget = 0;
     state.order.personalized = false;
+    state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
     saveState();
     closeSelectionPanel();
     renderMenu();
@@ -281,10 +289,10 @@
       remainder = Math.max(0, remainder - 1);
     });
     state.order.packageTarget = target;
-    if (target < 50) state.order.personalized = false;
     saveState();
+    scheduleShipping();
     renderMenu();
-    toast(`Armamos una mezcla sugerida de ${target} bebidas. Puedes cambiar los sabores.`);
+    toast(`Armamos una mezcla sugerida de ${target} bebidas. Puedes cambiar cantidades y sabores.`);
   }
 
   function renderPackages() {
@@ -295,7 +303,7 @@
         <span>${item.label}</span>
         <strong>${item.quantity} bebidas</strong>
         <small>${item.detail}</small>
-        <b>Desde $${item.price} c/u</b>
+        <b>$${item.price} c/u · personalizadas +$10</b>
       </button>
     `).join('');
   }
@@ -318,6 +326,14 @@
     });
   }
 
+  function quantityControl(product, quantity) {
+    return `<div class="qty qty--editable" aria-label="Cantidad de ${esc(product.name)}">
+      <button type="button" data-qty-id="${product.id}" data-delta="-1" aria-label="Quitar una">−</button>
+      <input type="number" min="0" max="9999" inputmode="numeric" value="${quantity}" data-qty-input="${product.id}" aria-label="Escribir cantidad de ${esc(product.name)}">
+      <button type="button" data-qty-id="${product.id}" data-delta="1" aria-label="Agregar una">+</button>
+    </div>`;
+  }
+
   function renderMenu() {
     renderPackages();
     renderFilters();
@@ -338,12 +354,8 @@
         </div>
         <div class="product-row__facts">${product.facts.map(fact => `<span>${esc(fact)}</span>`).join('')}</div>
         <div class="product-row__action">
-          <span class="product-row__price">$65 individual · baja por volumen</span>
-          <div class="qty" aria-label="Cantidad de ${esc(product.name)}">
-            <button type="button" data-qty-id="${product.id}" data-delta="-1" aria-label="Quitar una">−</button>
-            <span>${quantity}</span>
-            <button type="button" data-qty-id="${product.id}" data-delta="1" aria-label="Agregar una">+</button>
-          </div>
+          <span class="product-row__price">$65 individual · hasta $50 por volumen</span>
+          ${quantityControl(product, quantity)}
         </div>
       </article>`;
     }).join('') : '<div class="empty-menu"><h3>No encontramos ese antojo.</h3><p>Prueba con otra palabra o categoría.</p></div>';
@@ -353,7 +365,104 @@
 
   function fulfillmentCopy() {
     if (state.order.fulfillment === 'pickup') return 'Recoger en WTC · sin costo';
-    return state.order.postalCode ? `Entrega a domicilio · CP ${state.order.postalCode}` : 'Entrega a domicilio · falta código postal';
+    if (!/^\d{5}$/.test(state.order.postalCode)) return 'Entrega a domicilio · falta código postal';
+    if (state.order.shipping.status === 'loading') return 'Calculando envío…';
+    if (state.order.shipping.status === 'ready') return `Entrega estimada · $${state.order.shipping.fee}`;
+    return 'Entrega a domicilio · revisa el CP';
+  }
+
+  function volumeShippingFee(total) {
+    if (total <= 30) return 0;
+    if (total <= 75) return 35;
+    if (total <= 150) return 80;
+    if (total <= 250) return 140;
+    if (total <= 500) return 240;
+    return 360;
+  }
+
+  function roundToTen(value) {
+    return Math.ceil(value / 10) * 10;
+  }
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const toRad = value => value * Math.PI / 180;
+    const earth = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2
+      + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function fallbackDistance(postalCode) {
+    const prefix = Number(String(postalCode).slice(0, 2));
+    const map = {
+      1: 8, 2: 10, 3: 3, 4: 12, 5: 15, 6: 8, 7: 13, 8: 12, 9: 16,
+      10: 11, 11: 8, 12: 11, 13: 20, 14: 15, 15: 17, 16: 18, 17: 23
+    };
+    if (map[prefix]) return map[prefix];
+    if (prefix >= 50 && prefix <= 57) return 28;
+    return 38;
+  }
+
+  function shippingFromDistance(distance, total, source) {
+    const roadDistance = Math.max(2, distance * 1.25);
+    const fee = Math.min(680, roundToTen(65 + roadDistance * 8 + volumeShippingFee(total)));
+    return {
+      status: 'ready',
+      fee,
+      distance: Math.round(roadDistance * 10) / 10,
+      label: source === 'api' ? 'Calculado por distancia y volumen' : 'Estimado por zona y volumen'
+    };
+  }
+
+  async function calculateShipping(postalCode) {
+    const cp = String(postalCode || '').replace(/\D/g, '').slice(0, 5);
+    if (!/^\d{5}$/.test(cp) || state.order.fulfillment !== 'delivery') return;
+    const requestId = `${cp}-${Date.now()}`;
+    calculateShipping.requestId = requestId;
+    state.order.shipping = { status: 'loading', fee: 0, distance: 0, label: 'Calculando…' };
+    saveState();
+    renderSelection();
+
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4500);
+      const response = await fetch(`https://api.zippopotam.us/mx/${cp}`, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!response.ok) throw new Error('Postal code not found');
+      const data = await response.json();
+      const place = data?.places?.[0];
+      const lat = Number(place?.latitude);
+      const lon = Number(place?.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('No coordinates');
+      const distance = haversineKm(CONFIG.wtc.lat, CONFIG.wtc.lon, lat, lon);
+      if (calculateShipping.requestId !== requestId) return;
+      state.order.shipping = shippingFromDistance(distance, selectionTotal(), 'api');
+    } catch {
+      if (calculateShipping.requestId !== requestId) return;
+      state.order.shipping = shippingFromDistance(fallbackDistance(cp), selectionTotal(), 'fallback');
+    }
+
+    saveState();
+    renderSelection();
+    window.dispatchEvent(new CustomEvent('antojo:shipping', {
+      detail: { fee: state.order.shipping.fee, postalCode: cp }
+    }));
+  }
+
+  function scheduleShipping() {
+    clearTimeout(scheduleShipping.timer);
+    if (state.order.fulfillment !== 'delivery' || !/^\d{5}$/.test(state.order.postalCode)) return;
+    scheduleShipping.timer = setTimeout(() => calculateShipping(state.order.postalCode), 280);
+  }
+
+  function shippingDisplay() {
+    if (state.order.fulfillment === 'pickup') return { label: 'Recolección WTC', value: '$0', fee: 0 };
+    if (!/^\d{5}$/.test(state.order.postalCode)) return { label: 'Envío', value: 'Escribe tu CP', fee: 0 };
+    if (state.order.shipping.status === 'loading') return { label: 'Envío', value: 'Calculando…', fee: 0 };
+    if (state.order.shipping.status === 'ready') return { label: 'Envío estimado', value: `$${state.order.shipping.fee}`, fee: state.order.shipping.fee };
+    return { label: 'Envío', value: 'Por calcular', fee: 0 };
   }
 
   function renderSelection() {
@@ -364,17 +473,17 @@
     const items = selectionItems();
     const total = selectionTotal();
     const price = activeUnitPrice(total);
-    const subtotal = price ? total * price : 0;
+    const subtotal = total * price;
+    const delivery = shippingDisplay();
+    const grandTotal = subtotal + delivery.fee;
     const target = Number(state.order.packageTarget || 0);
     const packageProgress = target ? Math.min(100, Math.round((total / target) * 100)) : 0;
-    const shippingCopy = state.order.fulfillment === 'pickup' ? '$0' : 'Se cotiza con tu CP';
-    const totalLabel = state.order.fulfillment === 'pickup' ? 'Total' : 'Subtotal sin envío';
 
     const itemsHtml = total
-      ? `<div class="selection-items">${items.map(item => `<article class="selection-item"><img src="${item.image}" alt=""><div><b>${esc(item.name)}</b><small>${esc(item.categoryName)}</small></div><div class="qty"><button type="button" data-qty-id="${item.id}" data-delta="-1" aria-label="Quitar una">−</button><span>${item.quantity}</span><button type="button" data-qty-id="${item.id}" data-delta="1" aria-label="Agregar una">+</button></div></article>`).join('')}</div>`
-      : '<div class="selection-empty selection-empty--compact"><div><span>+</span><h4>Todavía no eliges bebidas.</h4><p>Elige un paquete o agrega sabores uno por uno.</p></div></div>';
+      ? `<div class="selection-items">${items.map(item => `<article class="selection-item"><img src="${item.image}" alt=""><div><b>${esc(item.name)}</b><small>${esc(item.categoryName)}</small></div>${quantityControl(item, item.quantity)}</article>`).join('')}</div>`
+      : '<div class="selection-empty selection-empty--compact"><div><span>+</span><h4>Todavía no eliges bebidas.</h4><p>Elige un paquete o escribe cantidades directamente.</p></div></div>';
 
-    const packageHtml = target ? `<div class="package-progress"><div><span>Pack de ${target}</span><b>${total}/${target}</b></div><i><em style="width:${packageProgress}%"></em></i><small>${total < target ? `Te faltan ${target - total} bebidas por elegir.` : total === target ? 'Tu paquete está completo.' : `Llevas ${total - target} bebidas extra.`}</small></div>` : '';
+    const packageHtml = target ? `<div class="package-progress"><div><span>Pack de ${target}</span><b>${total}/${target}</b></div><i><em style="width:${packageProgress}%"></em></i><small>${total < target ? `Te faltan ${target - total} bebidas.` : total === target ? 'Tu paquete está completo.' : `Llevas ${total - target} bebidas extra.`}</small></div>` : '';
     const personalizationDisabled = total < 50;
 
     summary.innerHTML = `${itemsHtml}
@@ -382,21 +491,22 @@
         ${packageHtml}
         <label class="order-toggle ${personalizationDisabled ? 'is-disabled' : ''}">
           <input type="checkbox" id="orderPersonalized" ${state.order.personalized ? 'checked' : ''} ${personalizationDisabled ? 'disabled' : ''}>
-          <span><b>Personalizar las latas</b><small>${personalizationDisabled ? 'Disponible desde 50 bebidas.' : 'Incluye diseño de etiqueta. El precio cambia por volumen.'}</small></span>
+          <span><b>Personalizar las latas · +$10 c/u</b><small>${personalizationDisabled ? 'Disponible desde 50 bebidas.' : 'Se suma al precio correspondiente por volumen.'}</small></span>
         </label>
         <fieldset class="fulfillment-options"><legend>¿Cómo las recibes?</legend>
-          <button type="button" class="${state.order.fulfillment === 'pickup' ? 'is-active' : ''}" data-fulfillment="pickup"><b>Recoger en WTC</b><small>Sin costo de envío</small></button>
-          <button type="button" class="${state.order.fulfillment === 'delivery' ? 'is-active' : ''}" data-fulfillment="delivery"><b>Entrega a domicilio</b><small>Tarifa según código postal</small></button>
+          <button type="button" class="${state.order.fulfillment === 'pickup' ? 'is-active' : ''}" data-fulfillment="pickup"><b>Recoger en WTC</b><small>Sin costo</small></button>
+          <button type="button" class="${state.order.fulfillment === 'delivery' ? 'is-active' : ''}" data-fulfillment="delivery"><b>Entrega a domicilio</b><small>Calculada por CP + volumen</small></button>
         </fieldset>
-        ${state.order.fulfillment === 'delivery' ? `<label class="postal-field"><span>Código postal de entrega</span><input id="orderPostalCode" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" value="${esc(state.order.postalCode)}" placeholder="Ej. 03100"><small>La tarifa real se confirma con la mensajería disponible antes de cobrar. No usamos una tarifa inventada.</small></label>` : ''}
+        ${state.order.fulfillment === 'delivery' ? `<label class="postal-field"><span>Código postal de entrega</span><input id="orderPostalCode" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" value="${esc(state.order.postalCode)}" placeholder="Ej. 03100"><small>${state.order.shipping.status === 'ready' ? `${esc(state.order.shipping.label)} · ${state.order.shipping.distance} km operativos aprox.` : 'Escribe 5 dígitos para calcular una tarifa estimada.'}</small></label>` : ''}
       </div>
       <div class="selection-totals">
         <div class="selection-total-row"><span>Bebidas</span><b>${total}</b></div>
-        <div class="selection-total-row"><span>Presentación</span><b>${state.order.personalized ? 'Personalizada' : 'ANTOJO.'}</b></div>
-        <div class="selection-total-row"><span>Precio por bebida</span><b>${price ? `$${price}` : total ? 'Mínimo 50' : '—'}</b></div>
-        <div class="selection-total-row"><span>Entrega</span><b>${shippingCopy}</b></div>
-        <div class="selection-total-row selection-total-row--strong"><span>${totalLabel}</span><b>${price ? `$${subtotal.toLocaleString('es-MX')} MXN` : '$0 MXN'}</b></div>
-        <p class="selection-note">${state.order.fulfillment === 'delivery' ? 'El total final se confirma cuando tengamos la tarifa real para tu CP.' : 'Recoger en WTC no agrega costo de envío.'}</p>
+        <div class="selection-total-row"><span>Precio base por bebida</span><b>${price ? `$${standardUnitPrice(total)}` : '—'}</b></div>
+        <div class="selection-total-row"><span>Personalización</span><b>${state.order.personalized ? '+$10 c/u' : 'No incluida'}</b></div>
+        <div class="selection-total-row"><span>Precio final por bebida</span><b>${price ? `$${price}` : '—'}</b></div>
+        <div class="selection-total-row"><span>${delivery.label}</span><b>${delivery.value}</b></div>
+        <div class="selection-total-row selection-total-row--strong"><span>Total estimado</span><b>$${grandTotal.toLocaleString('es-MX')} MXN</b></div>
+        <p class="selection-note">${state.order.fulfillment === 'delivery' ? 'La tarifa se calcula por ubicación aproximada del CP y volumen. Se confirma antes del cobro.' : 'Recoger en WTC no agrega costo.'}</p>
         <div class="selection-actions"><button class="selection-actions__primary" type="button" data-send-selection ${!total ? 'disabled' : ''}>Continuar por WhatsApp</button><button class="selection-actions__secondary" type="button" data-clear-selection ${!total ? 'disabled' : ''}>Vaciar selección</button></div>
       </div>`;
 
@@ -406,7 +516,7 @@
       return;
     }
 
-    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · ${price ? `$${price} c/u` : 'personalización desde 50'}</b>${fulfillmentCopy()}</p><button type="button" data-selection-toggle>Ver selección</button>`;
+    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${price} c/u</b>${fulfillmentCopy()} · Total $${grandTotal.toLocaleString('es-MX')}</p><button type="button" data-selection-toggle>Ver selección</button>`;
     bar.classList.add('is-visible');
   }
 
@@ -414,9 +524,10 @@
     const items = selectionItems();
     const total = selectionTotal();
     const price = activeUnitPrice(total);
-    const subtotal = price ? total * price : 0;
-    const delivery = state.order.fulfillment === 'delivery';
-    return `Hola, quiero pedir ANTOJO.\n\nMi selección:\n${items.map(item => `${item.quantity} × ${item.name}`).join('\n')}\n\nTotal: ${total} bebidas\nPresentación: ${state.order.personalized ? 'Personalizada' : 'Lata ANTOJO.'}\nPrecio estimado: ${price ? `$${price} c/u` : 'Por confirmar'}\nSubtotal de bebidas: $${subtotal.toLocaleString('es-MX')} MXN\nEntrega: ${delivery ? `A domicilio · CP ${state.order.postalCode || 'pendiente'}` : 'Recoger en WTC'}\nEnvío: ${delivery ? 'Cotizar tarifa real antes de cobrar' : '$0'}\n\n¿Me ayudan a confirmar disponibilidad${delivery ? ', tarifa real de envío' : ''} y total final?`;
+    const subtotal = total * price;
+    const delivery = shippingDisplay();
+    const grandTotal = subtotal + delivery.fee;
+    return `Hola, quiero pedir ANTOJO.\n\nMi selección:\n${items.map(item => `${item.quantity} × ${item.name}`).join('\n')}\n\nTotal: ${total} bebidas\nPrecio base: $${standardUnitPrice(total)} c/u\nPersonalización: ${state.order.personalized ? '+$10 c/u' : 'No'}\nPrecio final: $${price} c/u\nSubtotal de bebidas: $${subtotal.toLocaleString('es-MX')} MXN\nEntrega: ${state.order.fulfillment === 'delivery' ? `A domicilio · CP ${state.order.postalCode}` : 'Recoger en WTC'}\nEnvío estimado: ${state.order.fulfillment === 'delivery' ? `$${delivery.fee} MXN` : '$0'}\nTotal estimado: $${grandTotal.toLocaleString('es-MX')} MXN\n\n¿Me ayudan a confirmar disponibilidad, tarifa y total final antes del cobro?`;
   }
 
   function validateOrderBeforeSend() {
@@ -429,10 +540,17 @@
       toast('La personalización está disponible desde 50 bebidas.');
       return false;
     }
-    if (state.order.fulfillment === 'delivery' && !/^\d{5}$/.test(state.order.postalCode)) {
-      toast('Escribe un código postal válido de 5 dígitos.');
-      $('#orderPostalCode')?.focus();
-      return false;
+    if (state.order.fulfillment === 'delivery') {
+      if (!/^\d{5}$/.test(state.order.postalCode)) {
+        toast('Escribe un código postal válido de 5 dígitos.');
+        $('#orderPostalCode')?.focus();
+        return false;
+      }
+      if (state.order.shipping.status !== 'ready') {
+        toast('Espera un momento a que termine el cálculo del envío.');
+        scheduleShipping();
+        return false;
+      }
     }
     return true;
   }
@@ -454,13 +572,23 @@
     });
   }
 
+  function isDesktopEvent() {
+    return window.matchMedia('(min-width:981px)').matches;
+  }
+
   function renderEvent() {
+    const desktop = isDesktopEvent();
     const step = state.event.step;
-    $$('.form-step').forEach(section => section.classList.toggle('is-active', Number(section.dataset.step) === step));
-    $('#eventStepLabel').textContent = `Paso ${step} de 3`;
-    $('#eventProgress').style.width = `${step * 33.333}%`;
-    $('#eventBack').textContent = step === 1 ? 'Cancelar' : 'Atrás';
-    $('#eventNext').textContent = step === 3 ? 'Continuar en WhatsApp' : 'Continuar';
+    const page = $('.event-page');
+    page?.classList.toggle('event-page--all', desktop);
+    $$('.form-step').forEach(section => {
+      const active = desktop || Number(section.dataset.step) === step;
+      section.classList.toggle('is-active', active);
+    });
+    $('#eventStepLabel').textContent = desktop ? 'Cotización completa' : `Paso ${step} de 3`;
+    $('#eventProgress').style.width = desktop ? '100%' : `${step * 33.333}%`;
+    $('#eventBack').textContent = desktop || step === 1 ? 'Volver' : 'Atrás';
+    $('#eventNext').textContent = desktop || step === 3 ? 'Continuar en WhatsApp' : 'Continuar';
     $('#eventError').textContent = '';
     $$('[data-choice-group="eventType"] button').forEach(button => button.classList.toggle('is-active', button.dataset.value === state.event.type));
     [['#guestCount', 'guests'], ['#servings', 'servings'], ['#contactName', 'name'], ['#eventDate', 'date'], ['#eventPlace', 'place'], ['#eventNotes', 'notes']].forEach(([selector, key]) => {
@@ -482,41 +610,65 @@
   function renderEventSummary() {
     const node = $('#eventSummary');
     if (!node) return;
-    node.innerHTML = `<small>RESUMEN DE TU SOLICITUD</small><b>${esc(state.event.type || 'Evento por definir')} · ${suggestedQuantity()} latas</b><span>${state.event.guests} personas · ${state.event.servings} bebida${state.event.servings === 1 ? '' : 's'} por persona · ${state.event.personalized ? 'Latas personalizadas' : 'Presentación ANTOJO.'}<br>${state.event.date ? esc(state.event.date) : 'Fecha por definir'} · ${state.event.place ? esc(state.event.place) : 'Lugar por definir'}</span>`;
+    const qty = suggestedQuantity();
+    const price = standardUnitPrice(qty) + (state.event.personalized ? 10 : 0);
+    node.innerHTML = `<small>RESUMEN</small><b>${esc(state.event.type || 'Evento por definir')} · ${qty} latas</b><span>${state.event.guests} personas · ${state.event.servings} bebida${state.event.servings === 1 ? '' : 's'} por persona<br>${state.event.personalized ? `Personalizadas · $${price} c/u` : `ANTOJO. · $${price} c/u`} · ${state.event.date ? esc(state.event.date) : 'Fecha por definir'}</span>`;
   }
 
   function eventMessage() {
     const event = state.event;
-    return `Hola, quiero cotizar un evento con ANTOJO.\n\nNombre: ${event.name || 'Por definir'}\nTipo de evento: ${event.type}\nPersonas: ${event.guests}\nCantidad sugerida: ${suggestedQuantity()} latas\nServicio: ${event.servings} bebida${event.servings === 1 ? '' : 's'} por persona\nPresentación: ${event.personalized ? 'Personalizada' : 'Lata ANTOJO.'}\nFecha: ${event.date || 'Por definir'}\nLugar: ${event.place || 'Por definir'}\nNotas: ${event.notes || 'Sin notas adicionales'}\n\n¿Me ayudan a confirmar opciones, precio y disponibilidad?`;
+    const qty = suggestedQuantity();
+    const price = standardUnitPrice(qty) + (event.personalized ? 10 : 0);
+    return `Hola, quiero cotizar un evento con ANTOJO.\n\nNombre: ${event.name || 'Por definir'}\nTipo de evento: ${event.type}\nPersonas: ${event.guests}\nCantidad sugerida: ${qty} latas\nPrecio estimado: $${price} c/u\nServicio: ${event.servings} bebida${event.servings === 1 ? '' : 's'} por persona\nPresentación: ${event.personalized ? 'Personalizada (+$10 c/u)' : 'Lata ANTOJO.'}\nFecha: ${event.date || 'Por definir'}\nLugar: ${event.place || 'Por definir'}\nNotas: ${event.notes || 'Sin notas adicionales'}\n\n¿Me ayudan a confirmar opciones, envío, precio y disponibilidad?`;
+  }
+
+  function validateEventAll() {
+    syncEventInputs();
+    const error = $('#eventError');
+    if (!state.event.type) {
+      error.textContent = 'Elige el tipo de evento.';
+      return false;
+    }
+    if (state.event.personalized && suggestedQuantity() < 50) {
+      error.textContent = 'La personalización está disponible desde 50 piezas.';
+      return false;
+    }
+    if (state.event.name.length < 2) {
+      error.textContent = 'Escribe tu nombre para dar seguimiento.';
+      $('#contactName')?.focus();
+      return false;
+    }
+    return true;
   }
 
   function eventNext() {
     syncEventInputs();
     const event = state.event;
     const error = $('#eventError');
+
+    if (isDesktopEvent()) {
+      if (validateEventAll()) openWhatsApp(eventMessage());
+      return;
+    }
+
     if (event.step === 1 && !event.type) {
       error.textContent = 'Elige el tipo de evento para continuar.';
       return;
     }
     if (event.step === 2 && event.personalized && suggestedQuantity() < 50) {
-      error.textContent = 'La personalización está disponible desde 50 piezas. Ajusta la cantidad o desactiva esa opción.';
+      error.textContent = 'La personalización está disponible desde 50 piezas.';
       return;
     }
     if (event.step === 3) {
-      if (event.name.length < 2) {
-        error.textContent = 'Escribe tu nombre para que podamos dar seguimiento.';
-        return;
-      }
-      openWhatsApp(eventMessage());
+      if (validateEventAll()) openWhatsApp(eventMessage());
       return;
     }
     event.step += 1;
     renderEvent();
-    $('.onboarding-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function eventBack() {
-    if (state.event.step === 1) {
+    if (isDesktopEvent() || state.event.step === 1) {
       navigate('inicio');
       return;
     }
@@ -564,8 +716,12 @@
       const fulfillment = event.target.closest('[data-fulfillment]');
       if (fulfillment) {
         state.order.fulfillment = fulfillment.dataset.fulfillment === 'delivery' ? 'delivery' : 'pickup';
+        if (state.order.fulfillment === 'pickup') {
+          state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
+        }
         saveState();
         renderSelection();
+        scheduleShipping();
         return;
       }
       const quantity = event.target.closest('[data-qty-id]');
@@ -603,6 +759,22 @@
         state.order.personalized = event.target.checked;
         saveState();
         renderSelection();
+        return;
+      }
+      if (event.target.matches('[data-qty-input]')) {
+        setQuantity(event.target.dataset.qtyInput, event.target.value);
+      }
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.target.matches('[data-qty-input]') && event.key === 'Enter') {
+        event.preventDefault();
+        event.target.blur();
+      }
+      if (event.key === 'Escape') {
+        closeDrawer();
+        closeSelectionPanel();
+        closeFaq();
       }
     });
 
@@ -610,7 +782,9 @@
       if (event.target.matches('#orderPostalCode')) {
         state.order.postalCode = event.target.value.replace(/\D/g, '').slice(0, 5);
         event.target.value = state.order.postalCode;
+        state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
         saveState();
+        scheduleShipping();
       }
     });
 
@@ -622,13 +796,6 @@
     $('#selectionClose')?.addEventListener('click', closeSelectionPanel);
     $('#selectionBackdrop')?.addEventListener('click', closeSelectionPanel);
     $('#faqBackdrop')?.addEventListener('click', closeFaq);
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        closeDrawer();
-        closeSelectionPanel();
-        closeFaq();
-      }
-    });
 
     $('#menuSearch')?.addEventListener('input', event => {
       state.search = event.target.value;
@@ -649,6 +816,7 @@
     window.addEventListener('popstate', () => navigate(normalizeRoute(location.hash), false));
     window.addEventListener('resize', () => {
       if (window.innerWidth > 980) closeSelectionPanel();
+      renderEvent();
     });
   }
 
@@ -658,6 +826,7 @@
     renderMenu();
     renderEvent();
     navigate(normalizeRoute(location.hash), false);
+    scheduleShipping();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
