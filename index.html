@@ -12,9 +12,23 @@
   <meta property="og:description" content="Explora el menú, arma tu pedido o cotiza bebidas para tu evento.">
   <title>ANTOJO. — Bebidas frías en lata</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/app.css?v=20260722-3">
-  <link rel="stylesheet" href="/home-upgrades.css?v=20260722-3">
-  <script defer src="/app.js?v=20260722-3"></script>
+  <link rel="stylesheet" href="/app.css?v=20260722-4">
+  <link rel="stylesheet" href="/home-upgrades.css?v=20260722-4">
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    window.va('beforeSend', event => {
+      try {
+        const url = new URL(event.url);
+        url.search = '';
+        return { ...event, url: url.toString() };
+      } catch {
+        return event;
+      }
+    });
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/app.js?v=20260722-4"></script>
+  <script defer src="/experience-upgrades.js?v=20260722-4"></script>
 </head>
 <body>
   <div class="loader" id="loader" aria-hidden="true">
@@ -23,21 +37,9 @@
   </div>
 
   <div class="app" id="app">
-    <aside class="announcement-bar" aria-label="Novedades de ANTOJO.">
-      <div class="announcement-rotator">
-        <a class="announcement-message announcement-message--community" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">
-          <span class="announcement-message__dot"></span>
-          <strong>¡Ya somos 15K en Instagram!</strong>
-          <span>Gracias por ser parte del antojo.</span>
-          <b>Ver comunidad ↗</b>
-        </a>
-        <a class="announcement-message announcement-message--promo" href="#" data-whatsapp="Hola, quiero conocer las bases de la dinámica del pack doble de ANTOJO.">
-          <span class="announcement-message__dot"></span>
-          <strong>Del 22 al 31 de julio</strong>
-          <span>Tu pedido participa por un pack doble de bebidas a elección.</span>
-          <b>Consulta bases ↗</b>
-        </a>
-      </div>
+    <aside class="announcement-bar" aria-label="Información útil de esta sección">
+      <div class="announcement-window" aria-hidden="true"><div class="announcement-track" id="announcementTrack"></div></div>
+      <p class="announcement-live" id="announcementLive" aria-live="polite"></p>
     </aside>
 
     <header class="site-header">
@@ -67,28 +69,32 @@
             <p class="home-lead">Elige una ruta y llega directo a lo que necesitas. Sin menús eternos ni formularios confusos.</p>
             <div class="bio-links" aria-label="Acciones principales">
               <a class="bio-link bio-link--primary" href="#" data-whatsapp="Hola, quiero pedir bebidas de ANTOJO.">
-                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z"></path><path d="M9.1 8.3c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.8 1.8c.1.3.1.5-.1.7l-.7.8c-.2.2-.1.4 0 .6.5.9 1.3 1.7 2.2 2.2.2.1.4.2.6 0l.8-1c.2-.2.4-.3.7-.1l1.8.8c.3.1.4.3.4.5v.5c0 .3-.1.6-.4.8-.5.4-1.2.7-1.9.7-1.1 0-2.7-.5-4.4-2-1.9-1.7-3-3.8-3-5 0-.6.2-1.1.5-1.5Z"></path></svg>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M7.5 6.5h17a3 3 0 0 1 3 3v10.5a3 3 0 0 1-3 3H15l-6.5 4v-4h-1a3 3 0 0 1-3-3V9.5a3 3 0 0 1 3-3Z"></path><path d="M11.2 11.6c.5 4.1 3.2 6.9 7.3 7.7l1.7-2.1-3.1-1.7-1.2 1.2a7.6 7.6 0 0 1-3.2-3.2l1.1-1.2-1.6-3-2.1 1.5 1.1.8Z"></path></svg>
                 </span>
                 <span><small>Habla con nosotros</small><strong>WhatsApp</strong></span><b>01</b>
               </a>
               <button class="bio-link" type="button" data-route="menu">
-                <span class="bio-link__icon bio-link__icon--can" aria-hidden="true"><img src="/renders/03_mojito_clasico_te_de_mariposa.png" alt=""></span>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M11 4.5h10a3 3 0 0 1 3 3v17a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3v-17a3 3 0 0 1 3-3Z"></path><path d="M9 8h14M9 24h14"></path><circle class="icon-fill" cx="16" cy="12" r="1.4"></circle><circle class="icon-fill icon-soft" cx="16" cy="16" r="1.4"></circle><circle class="icon-fill" cx="16" cy="20" r="1.4"></circle></svg>
+                </span>
                 <span><small>Conoce los sabores</small><strong>Ver menú</strong></span><b>02</b>
               </button>
               <button class="bio-link" type="button" data-route="evento">
-                <span class="bio-link__icon bio-link__icon--duo" aria-hidden="true"><img src="/renders/05_horchata_espresso.png" alt=""><img src="/renders/03_mojito_clasico_te_de_mariposa.png" alt=""></span>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M10.5 7h8a2.5 2.5 0 0 1 2.5 2.5v15a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 8 24.5v-15A2.5 2.5 0 0 1 10.5 7Z"></path><path d="M9 10h11M9 23.5h11M25 8v5M22.5 10.5h5M24.8 18.3l.8 1.7 1.9.4-1.4 1.3.2 1.9-1.5-.9-1.7.8.4-1.9-1.3-1.4 1.9-.2.7-1.7Z"></path></svg>
+                </span>
                 <span><small>Bodas, cumpleaños y marcas</small><strong>Cotiza un evento</strong></span><b>03</b>
               </button>
               <button class="bio-link" type="button" data-route="dinamicas">
-                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M4 7.5h3l1.3-2h7.4l1.3 2h3a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"></path><circle cx="12" cy="13" r="3.5"></circle><path d="m18 4 .5 1.2L20 6l-1.5.8L18 8l-.5-1.2L16 6l1.5-.8L18 4Z"></path></svg>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M6.5 10.5h5l1.8-2.5h6.4l1.8 2.5h4A2.5 2.5 0 0 1 28 13v10.5a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 4 23.5V13a2.5 2.5 0 0 1 2.5-2.5Z"></path><circle cx="16" cy="18" r="5"></circle><path d="m25 5 .6 1.6L27.2 7l-1.6.6L25 9.2l-.6-1.6L22.8 7l1.6-.4L25 5Z"></path></svg>
                 </span>
                 <span><small>Regalos, activaciones y contenido</small><strong>Dinámicas ANTOJO.</strong></span><b>04</b>
               </button>
               <button class="bio-link" type="button" data-route="recompensas">
-                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
-                  <svg viewBox="0 0 24 24"><path d="M4 10h16v10H4z"></path><path d="M3 7h18v3H3zM12 7v13"></path><path d="M12 7H8.8A2.3 2.3 0 1 1 11 4.1L12 7Zm0 0h3.2A2.3 2.3 0 1 0 13 4.1L12 7Z"></path></svg>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">
+                  <svg viewBox="0 0 32 32"><path d="M6 7.5h20a2.5 2.5 0 0 1 2.5 2.5v12A2.5 2.5 0 0 1 26 24.5H6A2.5 2.5 0 0 1 3.5 22V10A2.5 2.5 0 0 1 6 7.5Z"></path><circle cx="9" cy="16" r="2"></circle><circle cx="14" cy="16" r="2"></circle><circle cx="19" cy="16" r="2"></circle><circle cx="24" cy="16" r="2"></circle><path d="M22.6 21.2 24 22l1.4-.8-.4-1.6 1.2-1.1-1.6-.2-.6-1.5-.6 1.5-1.6.2 1.2 1.1-.4 1.6Z"></path></svg>
                 </span>
                 <span><small>Vuelve y desbloquea beneficios</small><strong>Recompensas</strong></span><b>05</b>
               </button>
