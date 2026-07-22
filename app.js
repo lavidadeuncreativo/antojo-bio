@@ -6,6 +6,14 @@
     instagram: 'https://www.instagram.com/antojo.bebidas/'
   };
 
+  const ROUTE_LABELS = {
+    inicio: 'Inicio',
+    menu: 'Menú',
+    evento: 'Evento',
+    dinamicas: 'Dinámicas',
+    recompensas: 'Recompensas'
+  };
+
   const ASSETS = {
     margarita: '/renders/01_margarita.png',
     mojito: '/renders/02_mojito_clasico.png',
@@ -80,7 +88,7 @@
 
   function loadQuantities() {
     try {
-      const parsed = JSON.parse(localStorage.getItem('antojo-selection-v12') || '{}');
+      const parsed = JSON.parse(localStorage.getItem('antojo-selection-v13') || localStorage.getItem('antojo-selection-v12') || '{}');
       return parsed && typeof parsed === 'object' ? parsed : {};
     } catch {
       return {};
@@ -89,21 +97,29 @@
 
   function saveQuantities() {
     try {
-      localStorage.setItem('antojo-selection-v12', JSON.stringify(state.quantities));
+      localStorage.setItem('antojo-selection-v13', JSON.stringify(state.quantities));
     } catch {
       // The menu still works when storage is unavailable.
     }
   }
 
   function whatsappUrl(message) {
-    const text = encodeURIComponent(message);
-    return `https://wa.me/${CONFIG.whatsappNumber}?text=${text}`;
+    return `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
   }
 
   function openWhatsApp(message) {
     const url = whatsappUrl(message);
     const popup = window.open(url, '_blank', 'noopener,noreferrer');
     if (!popup) window.location.href = url;
+  }
+
+  function toast(message) {
+    const node = $('#toast');
+    if (!node) return;
+    node.textContent = message;
+    node.classList.add('is-visible');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => node.classList.remove('is-visible'), 2600);
   }
 
   function finishLoader() {
@@ -116,42 +132,62 @@
 
   function bootLoader() {
     const started = performance.now();
-    const complete = () => setTimeout(finishLoader, Math.max(0, 850 - (performance.now() - started)));
+    const complete = () => setTimeout(finishLoader, Math.max(0, 800 - (performance.now() - started)));
     if (document.readyState === 'complete') complete();
     else window.addEventListener('load', complete, { once: true });
-    setTimeout(finishLoader, 2200);
+    setTimeout(finishLoader, 2000);
   }
 
   function normalizeRoute(value) {
     const route = String(value || '').replace(/^#\/?/, '').trim();
-    return ['inicio', 'menu', 'evento', 'dinamicas', 'recompensas'].includes(route) ? route : 'inicio';
+    return Object.prototype.hasOwnProperty.call(ROUTE_LABELS, route) ? route : 'inicio';
+  }
+
+  function setActiveNavigation(route) {
+    $$('.mobile-nav [data-route], .drawer [data-route]').forEach(item => {
+      const active = item.dataset.route === route;
+      item.classList.toggle('is-active', active);
+      if (active) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    });
+    const indicator = $('#routeIndicator');
+    if (indicator) indicator.textContent = ROUTE_LABELS[route];
   }
 
   function navigate(route, updateHash = true) {
     const next = normalizeRoute(route);
     state.route = next;
     $$('.view').forEach(view => view.classList.toggle('is-active', view.dataset.view === next));
-    $$('.mobile-nav [data-route]').forEach(button => button.classList.toggle('is-active', button.dataset.route === next));
+    setActiveNavigation(next);
     closeDrawer();
+    closeSelectionPanel();
     if (next === 'menu') renderMenu();
     if (next === 'evento') renderEvent();
     if (updateHash && location.hash !== `#${next}`) history.pushState(null, '', `#${next}`);
-    window.scrollTo({
-      top: 0,
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
 
   function openDrawer() {
-    $('#drawer').classList.add('is-open');
-    $('#drawerBackdrop').classList.add('is-open');
-    $('#menuButton').setAttribute('aria-expanded', 'true');
+    $('#drawer')?.classList.add('is-open');
+    $('#drawerBackdrop')?.classList.add('is-open');
+    $('#menuButton')?.setAttribute('aria-expanded', 'true');
   }
 
   function closeDrawer() {
-    $('#drawer').classList.remove('is-open');
-    $('#drawerBackdrop').classList.remove('is-open');
-    $('#menuButton').setAttribute('aria-expanded', 'false');
+    $('#drawer')?.classList.remove('is-open');
+    $('#drawerBackdrop')?.classList.remove('is-open');
+    $('#menuButton')?.setAttribute('aria-expanded', 'false');
+  }
+
+  function openSelectionPanel() {
+    if (!selectionTotal()) return;
+    $('#orderPanel')?.classList.add('is-open');
+    $('#selectionBackdrop')?.classList.add('is-open');
+  }
+
+  function closeSelectionPanel() {
+    $('#orderPanel')?.classList.remove('is-open');
+    $('#selectionBackdrop')?.classList.remove('is-open');
   }
 
   function unitPrice(total) {
@@ -165,9 +201,7 @@
   }
 
   function selectionItems() {
-    return PRODUCTS
-      .map(product => ({ ...product, quantity: Number(state.quantities[product.id] || 0) }))
-      .filter(item => item.quantity > 0);
+    return PRODUCTS.map(product => ({ ...product, quantity: Number(state.quantities[product.id] || 0) })).filter(item => item.quantity > 0);
   }
 
   function selectionTotal() {
@@ -182,10 +216,16 @@
     renderMenu();
   }
 
+  function clearSelection() {
+    state.quantities = {};
+    saveQuantities();
+    closeSelectionPanel();
+    renderMenu();
+    toast('Tu selección quedó vacía.');
+  }
+
   function renderFilters() {
-    $('#filters').innerHTML = FILTERS.map(([id, label]) => (
-      `<button type="button" class="${state.filter === id ? 'is-active' : ''}" data-filter="${id}">${label}</button>`
-    )).join('');
+    $('#filters').innerHTML = FILTERS.map(([id, label]) => `<button type="button" class="${state.filter === id ? 'is-active' : ''}" data-filter="${id}">${label}</button>`).join('');
   }
 
   function filteredProducts() {
@@ -223,19 +263,26 @@
       </article>`;
     }).join('') : '<div class="empty-menu"><h3>No encontramos ese antojo.</h3><p>Prueba con otra palabra o categoría.</p></div>';
 
-    renderSelectionBar();
+    renderSelection();
   }
 
-  function renderSelectionBar() {
+  function renderSelection() {
+    const summary = $('#selectionSummary');
     const bar = $('#selectionBar');
+    const items = selectionItems();
     const total = selectionTotal();
+
     if (!total) {
+      summary.innerHTML = '<div class="selection-empty"><div><span>+</span><h4>Todavía no eliges bebidas.</h4><p>Usa los botones de cantidad y tu selección aparecerá aquí.</p></div></div>';
       bar.classList.remove('is-visible');
       bar.innerHTML = '';
       return;
     }
+
     const price = unitPrice(total);
-    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${price} c/u</b>Estimado: $${(total * price).toLocaleString('es-MX')} MXN · envío por confirmar</p><button type="button" id="sendSelection">Enviar pedido</button>`;
+    const subtotal = total * price;
+    summary.innerHTML = `<div class="selection-items">${items.map(item => `<article class="selection-item"><img src="${item.image}" alt=""><div><b>${esc(item.name)}</b><small>${esc(item.categoryName)}</small></div><div class="qty"><button type="button" data-qty-id="${item.id}" data-delta="-1" aria-label="Quitar una">−</button><span>${item.quantity}</span><button type="button" data-qty-id="${item.id}" data-delta="1" aria-label="Agregar una">+</button></div></article>`).join('')}</div><div class="selection-totals"><div class="selection-total-row"><span>Bebidas</span><b>${total}</b></div><div class="selection-total-row"><span>Precio estimado</span><b>$${price} c/u</b></div><div class="selection-total-row selection-total-row--strong"><span>Subtotal</span><b>$${subtotal.toLocaleString('es-MX')} MXN</b></div><div class="selection-actions"><button class="selection-actions__primary" type="button" data-send-selection>Enviar pedido por WhatsApp</button><button class="selection-actions__secondary" type="button" data-clear-selection>Vaciar selección</button></div></div>`;
+    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${price} c/u</b>Estimado: $${subtotal.toLocaleString('es-MX')} MXN</p><button type="button" data-selection-toggle>Ver selección</button>`;
     bar.classList.add('is-visible');
   }
 
@@ -251,22 +298,13 @@
   }
 
   function syncEventInputs() {
-    const numericFields = [['#guestCount', 'guests'], ['#servings', 'servings']];
-    numericFields.forEach(([selector, key]) => {
+    [['#guestCount', 'guests'], ['#servings', 'servings']].forEach(([selector, key]) => {
       const node = $(selector);
       if (node) state.event[key] = Number(node.value) || 1;
     });
-
     const personalized = $('#personalized');
     if (personalized) state.event.personalized = personalized.checked;
-
-    const textFields = [
-      ['#contactName', 'name', 100],
-      ['#eventDate', 'date', 20],
-      ['#eventPlace', 'place', 180],
-      ['#eventNotes', 'notes', 800]
-    ];
-    textFields.forEach(([selector, key, max]) => {
+    [['#contactName', 'name', 100], ['#eventDate', 'date', 20], ['#eventPlace', 'place', 180], ['#eventNotes', 'notes', 800]].forEach(([selector, key, max]) => {
       const node = $(selector);
       if (node) state.event[key] = node.value.trim().slice(0, max);
     });
@@ -280,24 +318,11 @@
     $('#eventBack').textContent = step === 1 ? 'Cancelar' : 'Atrás';
     $('#eventNext').textContent = step === 3 ? 'Continuar en WhatsApp' : 'Continuar';
     $('#eventError').textContent = '';
-
-    $$('[data-choice-group="eventType"] button').forEach(button => {
-      button.classList.toggle('is-active', button.dataset.value === state.event.type);
-    });
-
-    const fields = [
-      ['#guestCount', 'guests'],
-      ['#servings', 'servings'],
-      ['#contactName', 'name'],
-      ['#eventDate', 'date'],
-      ['#eventPlace', 'place'],
-      ['#eventNotes', 'notes']
-    ];
-    fields.forEach(([selector, key]) => {
+    $$('[data-choice-group="eventType"] button').forEach(button => button.classList.toggle('is-active', button.dataset.value === state.event.type));
+    [['#guestCount', 'guests'], ['#servings', 'servings'], ['#contactName', 'name'], ['#eventDate', 'date'], ['#eventPlace', 'place'], ['#eventNotes', 'notes']].forEach(([selector, key]) => {
       const node = $(selector);
       if (node) node.value = state.event[key];
     });
-
     const personalized = $('#personalized');
     if (personalized) personalized.checked = state.event.personalized;
     updateEventMath();
@@ -325,7 +350,6 @@
     syncEventInputs();
     const event = state.event;
     const error = $('#eventError');
-
     if (event.step === 1 && !event.type) {
       error.textContent = 'Elige el tipo de evento para continuar.';
       return;
@@ -342,10 +366,9 @@
       openWhatsApp(eventMessage());
       return;
     }
-
     event.step += 1;
     renderEvent();
-    $('.onboarding-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('.onboarding-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function eventBack() {
@@ -365,36 +388,39 @@
         navigate(route.dataset.route);
         return;
       }
-
       const whatsapp = event.target.closest('[data-whatsapp]');
       if (whatsapp) {
         event.preventDefault();
         openWhatsApp(whatsapp.dataset.whatsapp);
         return;
       }
-
       const filter = event.target.closest('[data-filter]');
       if (filter) {
         state.filter = filter.dataset.filter;
         renderMenu();
         return;
       }
-
       const quantity = event.target.closest('[data-qty-id]');
       if (quantity) {
         updateQuantity(quantity.dataset.qtyId, Number(quantity.dataset.delta));
         return;
       }
-
       const eventType = event.target.closest('[data-choice-group="eventType"] [data-value]');
       if (eventType) {
         state.event.type = eventType.dataset.value;
         renderEvent();
         return;
       }
-
-      if (event.target.closest('#sendSelection')) {
+      if (event.target.closest('[data-selection-toggle]')) {
+        openSelectionPanel();
+        return;
+      }
+      if (event.target.closest('[data-send-selection]')) {
         openWhatsApp(selectionMessage());
+        return;
+      }
+      if (event.target.closest('[data-clear-selection]')) {
+        clearSelection();
         return;
       }
       if (event.target.closest('#eventNext')) {
@@ -404,38 +430,40 @@
       if (event.target.closest('#eventBack')) eventBack();
     });
 
-    $('#menuButton').addEventListener('click', () => {
-      if ($('#drawer').classList.contains('is-open')) closeDrawer();
+    $('#menuButton')?.addEventListener('click', () => {
+      if ($('#drawer')?.classList.contains('is-open')) closeDrawer();
       else openDrawer();
     });
-    $('#drawerBackdrop').addEventListener('click', closeDrawer);
+    $('#drawerBackdrop')?.addEventListener('click', closeDrawer);
+    $('#selectionClose')?.addEventListener('click', closeSelectionPanel);
+    $('#selectionBackdrop')?.addEventListener('click', closeSelectionPanel);
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closeDrawer();
+      if (event.key === 'Escape') {
+        closeDrawer();
+        closeSelectionPanel();
+      }
     });
 
-    $('#menuSearch').addEventListener('input', event => {
+    $('#menuSearch')?.addEventListener('input', event => {
       state.search = event.target.value;
       renderMenu();
     });
 
     ['input', 'change'].forEach(type => {
-      $('#guestCount').addEventListener(type, updateEventMath);
-      $('#servings').addEventListener(type, updateEventMath);
-      $('#personalized').addEventListener(type, updateEventMath);
-      $('#contactName').addEventListener(type, syncEventInputs);
-      $('#eventDate').addEventListener(type, () => {
-        syncEventInputs();
-        renderEventSummary();
-      });
-      $('#eventPlace').addEventListener(type, () => {
-        syncEventInputs();
-        renderEventSummary();
-      });
-      $('#eventNotes').addEventListener(type, syncEventInputs);
+      $('#guestCount')?.addEventListener(type, updateEventMath);
+      $('#servings')?.addEventListener(type, updateEventMath);
+      $('#personalized')?.addEventListener(type, updateEventMath);
+      $('#contactName')?.addEventListener(type, syncEventInputs);
+      $('#eventDate')?.addEventListener(type, () => { syncEventInputs(); renderEventSummary(); });
+      $('#eventPlace')?.addEventListener(type, () => { syncEventInputs(); renderEventSummary(); });
+      $('#eventNotes')?.addEventListener(type, syncEventInputs);
     });
 
     window.addEventListener('hashchange', () => navigate(normalizeRoute(location.hash), false));
     window.addEventListener('popstate', () => navigate(normalizeRoute(location.hash), false));
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 980) closeSelectionPanel();
+    });
   }
 
   function start() {
