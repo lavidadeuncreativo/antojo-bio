@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const root = __dirname;
 const dist = path.join(root, 'dist');
-const files = ['index.html', 'app.css', 'app.js', 'favicon.svg', 'sw.js', 'renders'];
+const files = ['index.html', 'app.css', 'home-upgrades.css', 'app.js', 'favicon.svg', 'sw.js', 'renders'];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
