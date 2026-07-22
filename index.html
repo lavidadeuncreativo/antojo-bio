@@ -12,8 +12,9 @@
   <meta property="og:description" content="Explora el menú, arma tu pedido o cotiza bebidas para tu evento.">
   <title>ANTOJO. — Bebidas frías en lata</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/app.css?v=20260722-2">
-  <script defer src="/app.js?v=20260722-2"></script>
+  <link rel="stylesheet" href="/app.css?v=20260722-3">
+  <link rel="stylesheet" href="/home-upgrades.css?v=20260722-3">
+  <script defer src="/app.js?v=20260722-3"></script>
 </head>
 <body>
   <div class="loader" id="loader" aria-hidden="true">
@@ -22,6 +23,23 @@
   </div>
 
   <div class="app" id="app">
+    <aside class="announcement-bar" aria-label="Novedades de ANTOJO.">
+      <div class="announcement-rotator">
+        <a class="announcement-message announcement-message--community" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">
+          <span class="announcement-message__dot"></span>
+          <strong>¡Ya somos 15K en Instagram!</strong>
+          <span>Gracias por ser parte del antojo.</span>
+          <b>Ver comunidad ↗</b>
+        </a>
+        <a class="announcement-message announcement-message--promo" href="#" data-whatsapp="Hola, quiero conocer las bases de la dinámica del pack doble de ANTOJO.">
+          <span class="announcement-message__dot"></span>
+          <strong>Del 22 al 31 de julio</strong>
+          <span>Tu pedido participa por un pack doble de bebidas a elección.</span>
+          <b>Consulta bases ↗</b>
+        </a>
+      </div>
+    </aside>
+
     <header class="site-header">
       <button class="wordmark" type="button" data-route="inicio" aria-label="Ir al inicio">ANTOJO.</button>
       <div class="header-actions">
@@ -48,13 +66,39 @@
             <h1 id="home-title">¿Qué se te<br><em>antoja hoy?</em></h1>
             <p class="home-lead">Elige una ruta y llega directo a lo que necesitas. Sin menús eternos ni formularios confusos.</p>
             <div class="bio-links" aria-label="Acciones principales">
-              <a class="bio-link bio-link--primary" href="#" data-whatsapp="Hola, quiero pedir bebidas de ANTOJO."><span class="bio-link__icon">↗</span><span><small>Habla con nosotros</small><strong>WhatsApp</strong></span><b>01</b></a>
-              <button class="bio-link" type="button" data-route="menu"><span class="bio-link__icon">+</span><span><small>Conoce los sabores</small><strong>Ver menú</strong></span><b>02</b></button>
-              <button class="bio-link" type="button" data-route="evento"><span class="bio-link__icon">⌁</span><span><small>Bodas, cumpleaños y marcas</small><strong>Cotiza un evento</strong></span><b>03</b></button>
-              <button class="bio-link" type="button" data-route="dinamicas"><span class="bio-link__icon">◎</span><span><small>Regalos, activaciones y contenido</small><strong>Dinámicas ANTOJO.</strong></span><b>04</b></button>
-              <button class="bio-link" type="button" data-route="recompensas"><span class="bio-link__icon">✦</span><span><small>Vuelve y desbloquea beneficios</small><strong>Recompensas</strong></span><b>05</b></button>
+              <a class="bio-link bio-link--primary" href="#" data-whatsapp="Hola, quiero pedir bebidas de ANTOJO.">
+                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M20 11.6a8 8 0 0 1-11.8 7L4 20l1.4-4.1A8 8 0 1 1 20 11.6Z"></path><path d="M9.1 8.3c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.8 1.8c.1.3.1.5-.1.7l-.7.8c-.2.2-.1.4 0 .6.5.9 1.3 1.7 2.2 2.2.2.1.4.2.6 0l.8-1c.2-.2.4-.3.7-.1l1.8.8c.3.1.4.3.4.5v.5c0 .3-.1.6-.4.8-.5.4-1.2.7-1.9.7-1.1 0-2.7-.5-4.4-2-1.9-1.7-3-3.8-3-5 0-.6.2-1.1.5-1.5Z"></path></svg>
+                </span>
+                <span><small>Habla con nosotros</small><strong>WhatsApp</strong></span><b>01</b>
+              </a>
+              <button class="bio-link" type="button" data-route="menu">
+                <span class="bio-link__icon bio-link__icon--can" aria-hidden="true"><img src="/renders/03_mojito_clasico_te_de_mariposa.png" alt=""></span>
+                <span><small>Conoce los sabores</small><strong>Ver menú</strong></span><b>02</b>
+              </button>
+              <button class="bio-link" type="button" data-route="evento">
+                <span class="bio-link__icon bio-link__icon--duo" aria-hidden="true"><img src="/renders/05_horchata_espresso.png" alt=""><img src="/renders/03_mojito_clasico_te_de_mariposa.png" alt=""></span>
+                <span><small>Bodas, cumpleaños y marcas</small><strong>Cotiza un evento</strong></span><b>03</b>
+              </button>
+              <button class="bio-link" type="button" data-route="dinamicas">
+                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 7.5h3l1.3-2h7.4l1.3 2h3a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"></path><circle cx="12" cy="13" r="3.5"></circle><path d="m18 4 .5 1.2L20 6l-1.5.8L18 8l-.5-1.2L16 6l1.5-.8L18 4Z"></path></svg>
+                </span>
+                <span><small>Regalos, activaciones y contenido</small><strong>Dinámicas ANTOJO.</strong></span><b>04</b>
+              </button>
+              <button class="bio-link" type="button" data-route="recompensas">
+                <span class="bio-link__icon bio-link__icon--svg" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 10h16v10H4z"></path><path d="M3 7h18v3H3zM12 7v13"></path><path d="M12 7H8.8A2.3 2.3 0 1 1 11 4.1L12 7Zm0 0h3.2A2.3 2.3 0 1 0 13 4.1L12 7Z"></path></svg>
+                </span>
+                <span><small>Vuelve y desbloquea beneficios</small><strong>Recompensas</strong></span><b>05</b>
+              </button>
             </div>
-            <div class="home-proof" aria-label="Datos principales"><span><b>18</b> sabores</span><span><b>$65</b> desde</span><span><b>330 ml</b> por lata</span></div>
+            <div class="home-proof" aria-label="Datos principales">
+              <span><b>18</b> sabores</span>
+              <span><b>$65</b> desde</span>
+              <span><b>330 ml</b> por lata</span>
+              <span><b>Sáb/dom</b> entregas</span>
+            </div>
           </section>
 
           <aside class="home-art" aria-hidden="true">
