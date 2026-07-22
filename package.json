@@ -1,10 +1,10 @@
 {
   "name": "antojo-bio",
-  "version": "12.0.0",
+  "version": "12.1.0",
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "check": "node --check app.js && node --check build.js",
+    "check": "node --check app.js && node --check experience-upgrades.js && node --check build.js",
     "test": "npm run check && npm run build"
   },
   "engines": {

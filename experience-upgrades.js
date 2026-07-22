@@ -6,13 +6,13 @@
       '¡Ya somos 15K en Instagram!',
       'Pedidos del 22 al 31 de julio participan por un pack doble',
       '18 sabores · con y sin alcohol',
-      'Entregas sábados y domingos en CDMX'
+      'Entregas de viernes a domingo en CDMX'
     ],
     menu: [
-      'Elige entre 18 sabores',
-      'Agrega cantidades y revisa tu pedido sin salir del menú',
-      'Precios por volumen desde $65',
-      '¿No sabes qué elegir? Escríbenos por WhatsApp'
+      'Elige favoritos o descubre los sabores más pedidos',
+      'Arma paquetes de 50, 100 o 150 bebidas',
+      'Personalización disponible desde 50 piezas',
+      'Recoge en WTC o solicita entrega con tu código postal'
     ],
     evento: [
       'Latas personalizadas desde 50 piezas',
@@ -21,16 +21,16 @@
       'Fechas sujetas a disponibilidad'
     ],
     dinamicas: [
-      'Una bebida también puede ser contenido',
-      'Dinámicas para invitados, equipos y marcas',
-      'Latas con frases y diseños personalizados',
-      'Cuéntanos tu idea y la aterrizamos contigo'
+      'Sube una foto y una reseña para recibir una bebida en tu siguiente pedido',
+      'Giveaway: 20 latas · 10 packs dobles',
+      'Comparte tu combinación más rara',
+      'Contenido real de la comunidad ANTOJO.'
     ],
     recompensas: [
       '5 compras · 1 recompensa',
       'Registra cada pedido con tu número de WhatsApp',
       'Acumula sellos con ANTOJO. Club',
-      'Vuelve, desbloquea y disfruta'
+      'Tu quinto antojo viene con premio'
     ]
   };
 
@@ -53,15 +53,13 @@
     const safeData = Object.fromEntries(
       Object.entries(data)
         .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
-        .slice(0, 2)
+        .slice(0, 3)
     );
 
     try {
-      if (typeof window.va === 'function') {
-        window.va('event', { name, data: safeData });
-      }
+      if (typeof window.va === 'function') window.va('event', { name, data: safeData });
     } catch {
-      // Analytics must never interrupt the purchase experience.
+      // Analytics must never interrupt the ordering experience.
     }
 
     try {
@@ -76,6 +74,19 @@
     return `<span class="announcement-item"><i aria-hidden="true"></i><strong>${text}</strong></span>`;
   }
 
+  function measureTicker(trackNode) {
+    const firstGroup = trackNode?.querySelector('.announcement-group');
+    if (!firstGroup) return;
+    const distance = Math.ceil(firstGroup.getBoundingClientRect().width);
+    if (!distance) return;
+    trackNode.style.setProperty('--ticker-shift', `${distance}px`);
+    trackNode.style.setProperty('--ticker-duration', `${Math.max(17, distance / 82).toFixed(2)}s`);
+    trackNode.getAnimations().forEach(animation => {
+      animation.cancel();
+      animation.play();
+    });
+  }
+
   function renderTicker(route = currentRoute()) {
     const trackNode = document.querySelector('#announcementTrack');
     const liveNode = document.querySelector('#announcementLive');
@@ -83,12 +94,15 @@
 
     const messages = TICKERS[route] || TICKERS.inicio;
     const group = messages.map(tickerItem).join('');
-    trackNode.innerHTML = `<div class="announcement-group">${group}</div><div class="announcement-group" aria-hidden="true">${group}</div>`;
-    trackNode.style.setProperty('--ticker-duration', `${Math.max(22, messages.join(' ').length / 5.5)}s`);
+    trackNode.innerHTML = `<div class="announcement-group">${group}</div><div class="announcement-group" aria-hidden="true">${group}</div><div class="announcement-group" aria-hidden="true">${group}</div>`;
     if (liveNode) liveNode.textContent = messages.join('. ');
+
+    requestAnimationFrame(() => requestAnimationFrame(() => measureTicker(trackNode)));
+    if (document.fonts?.ready) document.fonts.ready.then(() => measureTicker(trackNode));
   }
 
-  function trackSectionView(route) {
+  function syncRoute(route = currentRoute()) {
+    renderTicker(route);
     track('view_section', { section: route });
   }
 
@@ -99,6 +113,12 @@
       if (routeTarget) {
         const destination = normalizeRoute(routeTarget.dataset.route);
         track(ROUTE_EVENTS[destination] || 'navigate', { from: origin, to: destination });
+        setTimeout(() => syncRoute(destination), 0);
+        return;
+      }
+
+      if (event.target.closest('[data-faq-open]')) {
+        track('open_faq', { section: origin });
         return;
       }
 
@@ -111,6 +131,18 @@
       const filter = event.target.closest('[data-filter]');
       if (filter) {
         track('filter_menu', { filter: filter.dataset.filter || 'all' });
+        return;
+      }
+
+      const packageButton = event.target.closest('[data-package]');
+      if (packageButton) {
+        track('select_package', { quantity: Number(packageButton.dataset.package) || 0 });
+        return;
+      }
+
+      const fulfillment = event.target.closest('[data-fulfillment]');
+      if (fulfillment) {
+        track('select_fulfillment', { method: fulfillment.dataset.fulfillment || 'pickup' });
         return;
       }
 
@@ -142,30 +174,29 @@
       const eventNext = event.target.closest('#eventNext');
       if (eventNext) {
         const completes = eventNext.textContent.toLowerCase().includes('whatsapp');
-        track(completes ? 'complete_event_quote' : 'continue_event_quote', {
-          section: origin
-        });
+        track(completes ? 'complete_event_quote' : 'continue_event_quote', { section: origin });
       }
     }, { passive: true });
-  }
 
-  function syncRoute() {
-    const route = currentRoute();
-    renderTicker(route);
-    trackSectionView(route);
+    document.addEventListener('change', event => {
+      if (event.target.matches('#orderPersonalized')) {
+        track('toggle_personalization', { enabled: event.target.checked });
+      }
+    }, { passive: true });
   }
 
   function start() {
     renderTicker();
     bindAnalytics();
-    trackSectionView(currentRoute());
-    window.addEventListener('hashchange', syncRoute);
-    window.addEventListener('popstate', syncRoute);
+    track('view_section', { section: currentRoute() });
+    window.addEventListener('hashchange', () => syncRoute());
+    window.addEventListener('popstate', () => syncRoute());
+    window.addEventListener('resize', () => {
+      clearTimeout(start.resizeTimer);
+      start.resizeTimer = setTimeout(() => measureTicker(document.querySelector('#announcementTrack')), 140);
+    });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
-  } else {
-    start();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
 })();
