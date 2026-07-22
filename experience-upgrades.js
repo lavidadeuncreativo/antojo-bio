@@ -9,8 +9,8 @@
       'Entregas de viernes a domingo en CDMX'
     ],
     menu: [
-      'Elige favoritos o descubre los sabores más pedidos',
-      'Paquetes desde 50 hasta 500 bebidas',
+      'Favoritos: mojito mariposa · espresso horchata · maracuyá',
+      'Paquetes desde 50 hasta +500 bebidas',
       'Personalización por +$10 por lata desde 50 piezas',
       'Recoge en WTC o calcula entrega con tu código postal'
     ],
@@ -47,6 +47,12 @@
     ['/renders/01_margarita.png', 'Para cuando el antojo pide algo cítrico.']
   ];
 
+  const PREFERRED_FAVORITES = new Set([
+    'Mojito mariposa',
+    'Espresso horchata',
+    'Maracuyá con mezcal'
+  ]);
+
   const ROUTE_EVENTS = {
     inicio: 'return_home',
     menu: 'open_menu',
@@ -54,6 +60,10 @@
     dinamicas: 'open_dynamics',
     recompensas: 'open_rewards'
   };
+
+  let favoriteMode = false;
+  let switchingToAll = false;
+  let patchQueued = false;
 
   const normalizeRoute = value => {
     const route = String(value || '').replace(/^#\/?/, '').trim();
@@ -91,7 +101,7 @@
 
   function startLoop(trackNode, groupNode, pixelsPerSecond = 72) {
     if (!trackNode || !groupNode) return;
-    if (trackNode._loopAnimation) trackNode._loopAnimation.cancel();
+    trackNode._loopAnimation?.cancel();
 
     const shift = Math.ceil(groupNode.scrollWidth);
     if (!shift) return;
@@ -105,14 +115,18 @@
 
   function buildLoop(trackNode, baseHtml, groupClass, pixelsPerSecond) {
     if (!trackNode) return;
-    trackNode.innerHTML = `<div class="${groupClass}">${baseHtml}</div>`;
-    let group = trackNode.firstElementChild;
-    if (!group) return;
+    trackNode._loopAnimation?.cancel();
+    trackNode.replaceChildren();
 
-    const targetWidth = Math.max(window.innerWidth * 1.25, 1200);
+    const group = document.createElement('div');
+    group.className = groupClass;
+    group.innerHTML = baseHtml;
+    trackNode.appendChild(group);
+
+    const targetWidth = Math.max(window.innerWidth * 1.35, 1400);
     const firstWidth = Math.max(1, group.scrollWidth);
     const repeats = Math.max(1, Math.ceil(targetWidth / firstWidth));
-    group.innerHTML = baseHtml.repeat(repeats);
+    if (repeats > 1) group.innerHTML = baseHtml.repeat(repeats);
 
     const clone = group.cloneNode(true);
     clone.setAttribute('aria-hidden', 'true');
@@ -131,7 +145,7 @@
 
   function socialCard([image, caption]) {
     return `<a class="social-post" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener" data-instagram-post>
-      <span class="social-post__visual"><img src="${image}" alt="${caption}" loading="lazy"><i>Ver en Instagram ↗</i></span>
+      <span class="social-post__visual"><img src="${image}" alt="${caption}" loading="lazy" decoding="async"><i>Ver en Instagram ↗</i></span>
       <strong>${caption}</strong>
       <small>@antojo.bebidas</small>
     </a>`;
@@ -140,23 +154,136 @@
   function renderSocialLoop() {
     const trackNode = document.querySelector('#socialTrack');
     if (!trackNode) return;
-    buildLoop(trackNode, SOCIAL_POSTS.map(socialCard).join(''), 'social-group', 42);
+    buildLoop(trackNode, SOCIAL_POSTS.map(socialCard).join(''), 'social-group', 38);
+  }
+
+  function stopSocialLoop() {
+    const trackNode = document.querySelector('#socialTrack');
+    trackNode?._loopAnimation?.pause();
+  }
+
+  function patchHomeProof() {
+    const badge = document.querySelector('.home-proof span:last-child');
+    if (!badge) return;
+    badge.classList.add('home-proof__delivery');
+    badge.innerHTML = '<b>Viernes a domingo</b><span>Entregas en CDMX</span>';
+  }
+
+  function patchPackageCard() {
+    const card = document.querySelector('[data-package="500"]');
+    if (!card) return;
+    const eyebrow = card.querySelector('span');
+    const title = card.querySelector('strong');
+    if (eyebrow) eyebrow.textContent = '+500';
+    if (title) title.textContent = '500 o más bebidas';
+  }
+
+  function ensureFavoriteLabel(row, shouldBeFavorite) {
+    const labels = row.querySelector('.product-row__labels');
+    if (!labels) return;
+    const favoriteLabels = [...labels.querySelectorAll('i')].filter(label => label.textContent.trim().toLowerCase() === 'favorito');
+
+    if (shouldBeFavorite && !favoriteLabels.length) {
+      const label = document.createElement('i');
+      label.textContent = 'Favorito';
+      labels.prepend(label);
+    }
+
+    if (!shouldBeFavorite) favoriteLabels.forEach(label => label.remove());
+    if (favoriteLabels.length > 1) favoriteLabels.slice(1).forEach(label => label.remove());
+  }
+
+  function patchFavoriteRows() {
+    const rows = [...document.querySelectorAll('#productList .product-row')];
+    let visibleIndex = 0;
+
+    rows.forEach(row => {
+      const name = row.querySelector('h3')?.textContent.trim() || '';
+      const isPreferred = PREFERRED_FAVORITES.has(name);
+      ensureFavoriteLabel(row, isPreferred);
+      row.hidden = favoriteMode && !isPreferred;
+
+      const number = row.querySelector('.product-row__number');
+      if (!row.hidden && number) {
+        visibleIndex += 1;
+        number.textContent = String(visibleIndex).padStart(2, '0');
+      }
+    });
+
+    const favoriteButton = document.querySelector('[data-filter="favorites"]');
+    if (favoriteMode) {
+      document.querySelectorAll('#filters [data-filter]').forEach(button => button.classList.toggle('is-active', button === favoriteButton));
+    }
+  }
+
+  function patchMenuUi() {
+    patchPackageCard();
+    patchFavoriteRows();
+  }
+
+  function queueMenuPatch() {
+    if (patchQueued) return;
+    patchQueued = true;
+    requestAnimationFrame(() => {
+      patchQueued = false;
+      patchMenuUi();
+    });
+  }
+
+  function bindFavoriteFilter() {
+    document.addEventListener('click', event => {
+      const filter = event.target.closest?.('[data-filter]');
+      if (!filter || switchingToAll) return;
+
+      if (filter.dataset.filter === 'favorites') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        favoriteMode = true;
+        switchingToAll = true;
+        document.querySelector('[data-filter="all"]')?.click();
+        switchingToAll = false;
+        queueMenuPatch();
+        track('filter_menu', { filter: 'favorites' });
+        return;
+      }
+
+      favoriteMode = false;
+      queueMenuPatch();
+    }, true);
+
+    const observer = new MutationObserver(queueMenuPatch);
+    const productList = document.querySelector('#productList');
+    const packageOptions = document.querySelector('#packageOptions');
+    if (productList) observer.observe(productList, { childList: true, subtree: true });
+    if (packageOptions) observer.observe(packageOptions, { childList: true, subtree: true });
   }
 
   function syncRoute(route = currentRoute()) {
     renderTicker(route);
+    if (route === 'dinamicas') renderSocialLoop();
+    else stopSocialLoop();
     track('view_section', { section: route });
   }
 
   function bindLoopHover() {
     document.addEventListener('mouseenter', event => {
       const trackNode = event.target.closest?.('.announcement-track,.social-track');
-      if (trackNode?._loopAnimation) trackNode._loopAnimation.pause();
+      trackNode?._loopAnimation?.pause();
     }, true);
     document.addEventListener('mouseleave', event => {
       const trackNode = event.target.closest?.('.announcement-track,.social-track');
-      if (trackNode?._loopAnimation) trackNode._loopAnimation.play();
+      if (trackNode?._loopAnimation && !document.hidden) trackNode._loopAnimation.play();
     }, true);
+  }
+
+  function bindVisibilityPerformance() {
+    document.addEventListener('visibilitychange', () => {
+      document.querySelectorAll('.announcement-track,.social-track').forEach(trackNode => {
+        if (!trackNode._loopAnimation) return;
+        if (document.hidden) trackNode._loopAnimation.pause();
+        else if (trackNode.matches('.announcement-track') || currentRoute() === 'dinamicas') trackNode._loopAnimation.play();
+      });
+    });
   }
 
   function bindAnalytics() {
@@ -207,20 +334,24 @@
 
   function refreshLoops() {
     renderTicker();
-    renderSocialLoop();
+    if (currentRoute() === 'dinamicas') renderSocialLoop();
   }
 
   function start() {
+    patchHomeProof();
+    bindFavoriteFilter();
+    queueMenuPatch();
     refreshLoops();
     bindLoopHover();
+    bindVisibilityPerformance();
     bindAnalytics();
     track('view_section', { section: currentRoute() });
     window.addEventListener('hashchange', () => syncRoute());
     window.addEventListener('popstate', () => syncRoute());
     window.addEventListener('resize', () => {
       clearTimeout(start.resizeTimer);
-      start.resizeTimer = setTimeout(refreshLoops, 180);
-    });
+      start.resizeTimer = setTimeout(refreshLoops, 240);
+    }, { passive: true });
     if (document.fonts?.ready) document.fonts.ready.then(refreshLoops);
   }
 
