@@ -5,7 +5,7 @@ Experiencia web responsive para convertir el enlace de Instagram de ANTOJO. en u
 ## Experiencia principal
 
 - Inicio tipo biolink con cinco acciones concretas.
-- Acceso a WhatsApp con mensajes prellenados.
+- Acceso directo a WhatsApp con mensajes prellenados.
 - Menú editorial de 18 bebidas, sin fondos pesados detrás de las latas.
 - Filtros por categoría y buscador en desktop.
 - Selector de cantidades con estimación de precio por volumen.
@@ -43,4 +43,4 @@ Vercel ejecuta `node build.js` y publica `dist/`.
 
 ## WhatsApp
 
-El número se configura en `CONFIG.whatsappNumber`, al inicio de `app.js`, usando formato internacional sin `+` ni espacios. Cuando no está configurado, WhatsApp abre el selector para compartir el mensaje generado.
+El sitio está conectado al número de ANTOJO. `+52 55 2202 6291`. El valor vive en `CONFIG.whatsappNumber`, al inicio de `app.js`, usando formato internacional sin `+` ni espacios.
