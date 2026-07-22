@@ -14,4 +14,12 @@ for (const file of files) {
   fs.cpSync(from, path.join(dist, file), { recursive: true });
 }
 
+const mobileAudit = path.join(root, 'mobile-shipping-audit.js');
+if (!fs.existsSync(mobileAudit)) throw new Error('Falta mobile-shipping-audit.js');
+fs.appendFileSync(
+  path.join(dist, 'experience-upgrades.js'),
+  `\n\n${fs.readFileSync(mobileAudit, 'utf8')}\n`,
+  'utf8'
+);
+
 console.log('✓ ANTOJO. build listo');
