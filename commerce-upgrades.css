@@ -2,7 +2,7 @@
 body.has-overlay{overflow:hidden}
 
 /* True continuous loops are driven by Web Animations API */
-.announcement-track,.social-track{display:flex;width:max-content;min-width:100%;height:100%;will-change:transform;transform:translate3d(0,0,0)}
+.announcement-track,.social-track{display:flex;width:max-content;min-width:100%;height:100%;will-change:transform;transform:translate3d(0,0,0);contain:layout paint}
 .announcement-group,.social-group{display:flex;flex:0 0 auto;align-items:center;min-width:max-content;height:100%}
 .announcement-group{padding-right:18px}
 .announcement-item{display:inline-flex;align-items:center;gap:10px;padding:0 34px;color:#fff;font-size:14px;font-weight:760;letter-spacing:.005em;white-space:nowrap}
@@ -18,7 +18,7 @@ body.has-overlay{overflow:hidden}
 .package-picker h3{margin:7px 0 8px;font-size:clamp(28px,3vw,42px);line-height:.93;letter-spacing:-.055em}
 .package-picker p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
 .package-options{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}.package-options::-webkit-scrollbar{display:none}
-.package-card{flex:0 0 176px;min-height:140px;display:flex;flex-direction:column;align-items:flex-start;padding:15px;border:1px solid var(--line);border-radius:19px;background:var(--paper);text-align:left;cursor:pointer;transition:.25s var(--ease)}
+.package-card{flex:0 0 176px;min-height:140px;display:flex;flex-direction:column;align-items:flex-start;padding:15px;border:1px solid var(--line);border-radius:19px;background:var(--paper);text-align:left;cursor:pointer;transition:.25s var(--ease);touch-action:manipulation}
 .package-card:hover,.package-card.is-active{transform:translateY(-3px);border-color:var(--red);box-shadow:0 14px 30px rgba(65,39,24,.08)}
 .package-card.is-active{background:var(--yellow)}
 .package-card span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
@@ -79,7 +79,7 @@ body.has-overlay{overflow:hidden}
 .dynamic-card a{margin-top:auto;align-self:flex-start;padding-top:24px;font-size:12px;font-weight:900;text-decoration:none}
 
 /* Instagram infinite showcase */
-.instagram-showcase{margin:56px calc(50% - 50vw) -10px;padding:38px 0 44px;border-top:1px solid rgba(217,54,34,.14);border-bottom:1px solid rgba(217,54,34,.14);background:rgba(255,253,248,.44);overflow:hidden}
+.instagram-showcase{margin:56px calc(50% - 50vw) -10px;padding:38px 0 44px;border-top:1px solid rgba(217,54,34,.14);border-bottom:1px solid rgba(217,54,34,.14);background:rgba(255,253,248,.44);overflow:hidden;content-visibility:auto;contain-intrinsic-size:430px}
 .instagram-showcase__head{width:min(1240px,100%);display:flex;justify-content:space-between;gap:20px;align-items:end;margin:0 auto 22px;padding:0 clamp(18px,4vw,52px)}
 .instagram-showcase__head span{color:var(--red);font-size:9px;font-weight:900;letter-spacing:.13em}
 .instagram-showcase__head h3{margin:7px 0 0;font-size:clamp(38px,5vw,70px);line-height:.9;letter-spacing:-.06em}
@@ -137,6 +137,17 @@ body.has-overlay{overflow:hidden}
   .event-page .form-error{grid-column:1/-1;margin:0;text-align:right;font-size:9px}
 }
 
+/* Perceived performance and lighter paint work */
+.view{animation:antojoViewIn .3s var(--ease)}
+@keyframes antojoViewIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.product-row{content-visibility:auto;contain:layout paint style;contain-intrinsic-size:142px}
+#productList .product-row[hidden]{display:none!important}
+.product-row__image,.product-row__image img{contain:paint}
+.home-proof__delivery{gap:6px!important;white-space:nowrap}
+.home-proof__delivery b{font-size:11px!important}
+.home-proof__delivery span{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.035em}
+button,.qty input{touch-action:manipulation}
+
 @media(max-width:1100px){
   .package-picker{grid-template-columns:1fr}.package-options{margin-inline:-2px}
   .rewards-card--balanced{gap:30px}
@@ -154,14 +165,15 @@ body.has-overlay{overflow:hidden}
 @media(max-width:720px){
   :root{--announcement-h:36px}
   .announcement-item{font-size:11.5px;padding-inline:20px;gap:8px}.announcement-item i{width:6px;height:6px;flex-basis:6px;box-shadow:0 0 0 4px rgba(255,228,94,.13)}
-  .site-header{padding-inline:13px}.wordmark{font-size:21px}.header-menu{width:40px;height:40px}.header-instagram{display:none}
+  .site-header{padding-inline:13px;backdrop-filter:none;-webkit-backdrop-filter:none}.wordmark{font-size:21px}.header-menu{width:40px;height:40px}.header-instagram{display:none}
   .page-shell{padding:14px 13px 82px}.page-nav{margin-bottom:18px}.page-header{margin-bottom:22px}.page-header h2{font-size:clamp(45px,13vw,64px)}.page-header>p:last-child{margin-top:13px;font-size:13px}
-  .home-layout{padding:17px 13px 86px;gap:18px}.home-intro h1{font-size:clamp(50px,14.5vw,72px)}.home-lead{margin:14px 0 17px;font-size:14px}.bio-link{min-height:62px;padding:7px 10px;border-radius:17px}.bio-link__icon{width:39px;height:39px}.bio-link span strong{font-size:17px}.home-proof{display:grid;grid-template-columns:1fr 1fr;gap:6px}.home-proof span{justify-content:center;padding:7px 6px}.home-art{height:330px;border-radius:25px}.home-art__copy{font-size:37px}.hero-can{width:35%}
+  .home-layout{padding:17px 13px 86px;gap:18px}.home-intro h1{font-size:clamp(50px,14.5vw,72px)}.home-lead{margin:14px 0 17px;font-size:14px}.bio-link{min-height:62px;padding:7px 10px;border-radius:17px}.bio-link__icon{width:39px;height:39px}.bio-link span strong{font-size:17px}.home-proof{display:grid;grid-template-columns:1fr 1fr;gap:6px}.home-proof span{justify-content:center;padding:7px 6px}.home-proof__delivery{white-space:normal;flex-direction:column;align-items:center!important;gap:1px!important;text-align:center}.home-art{height:330px;border-radius:25px}.home-art__copy{font-size:37px}.hero-can{width:35%}
   .package-picker{padding:15px;border-radius:20px;gap:14px}.package-picker h3{font-size:34px}.package-options{display:flex}.package-card{flex-basis:184px;min-height:130px}
-  .menu-tools{padding-top:7px}.filters button{padding:9px 11px;font-size:9px}.product-row{grid-template-columns:24px 1fr;padding:13px 0;gap:8px}.product-row__main{grid-template-columns:72px 1fr;gap:10px}.product-row__image{height:100px}.product-row__image img{width:66px;height:96px}.product-row h3{font-size:22px}.product-row__main p{font-size:10px}.product-row__facts{grid-column:2/3}.product-row__action{grid-column:2/3;display:flex;align-items:center;justify-content:space-between;gap:8px}.product-row__price{max-width:118px;font-size:8px}.qty--editable{grid-template-columns:29px 46px 29px!important}.qty--editable input{height:29px}
+  .menu-tools{padding-top:7px;backdrop-filter:none}.filters button{padding:9px 11px;font-size:9px}.product-row{grid-template-columns:24px 1fr;padding:13px 0;gap:8px;contain-intrinsic-size:226px}.product-row__main{grid-template-columns:72px 1fr;gap:10px}.product-row__image{height:100px}.product-row__image img{width:66px;height:96px;filter:drop-shadow(0 7px 5px rgba(54,33,21,.1))}.product-row h3{font-size:22px}.product-row__main p{font-size:10px}.product-row__facts{grid-column:2/3}.product-row__action{grid-column:2/3;display:flex;align-items:center;justify-content:space-between;gap:8px}.product-row__price{max-width:118px;font-size:8px}.qty--editable{grid-template-columns:29px 46px 29px!important}.qty--editable input{height:29px}
+  .package-card:hover,.bio-link:hover,.social-post:hover .social-post__visual img{transform:none;box-shadow:none}
   .fulfillment-options{grid-template-columns:1fr}.selection-item{grid-template-columns:42px 1fr}.selection-item .qty--editable{grid-column:2/3;justify-self:end;margin-top:4px}
   .dynamic-card{min-height:0;padding:21px;border-radius:23px}.dynamic-card h3{margin-top:24px;font-size:42px}.dynamic-card:nth-child(3){min-height:0}.dynamic-card p{font-size:12px}.dynamic-card a{padding-top:21px}
-  .instagram-showcase{margin-top:38px;padding:28px 0 34px}.instagram-showcase__head{align-items:flex-start}.instagram-showcase__head h3{font-size:43px}.instagram-showcase__head>a{display:none}.social-post{width:200px;flex-basis:200px}.social-post__visual{height:244px;border-radius:20px}
+  .instagram-showcase{margin-top:38px;padding:28px 0 34px}.instagram-showcase__head{align-items:flex-start}.instagram-showcase__head h3{font-size:43px}.instagram-showcase__head>a{display:none}.social-post{width:200px;flex-basis:200px}.social-post__visual{height:244px;border-radius:20px}.social-post__visual img{filter:drop-shadow(0 10px 7px rgba(55,33,21,.13))}
   .rewards-card--balanced{padding:24px 18px}.rewards-card--balanced .rewards-card__intro h3{font-size:52px}.rewards-card__visual .stamp-grid{grid-template-columns:repeat(5,1fr)}.rewards-card__visual .stamp-grid i{font-size:15px}.rewards-card--balanced .rewards-rules{grid-template-columns:1fr}
   .event-page{padding-top:10px}.event-page .page-header h2{font-size:47px}.event-page .page-header>p:last-child{display:none}.event-page .onboarding-card{padding:14px;border-radius:22px}.event-page .progress-head{margin-bottom:13px}.event-page .form-step h3{font-size:29px}.event-page .form-step>p{margin-bottom:12px;font-size:11px}.event-page .choice-grid{grid-template-columns:1fr 1fr;gap:7px}.event-page .choice-grid button{min-height:72px;padding:10px;border-radius:14px}.event-page .choice-grid button:last-child{grid-column:1/-1}.event-page .choice-grid button b{font-size:12px}.event-page .choice-grid button span{font-size:8px}.event-page .field-grid--two{grid-template-columns:1fr 1fr;gap:7px}.event-page .field input,.event-page .field select{height:41px}.event-page .field textarea{min-height:66px}.event-page .quantity-result{margin:9px 0;padding:11px}.event-page .toggle-row{padding:10px}.event-page .event-summary{margin-top:8px}.event-page .form-actions{margin-top:12px}.event-page .form-actions .button{height:43px}.event-page .form-error{font-size:9px}
   .faq-floating{right:10px;padding-right:9px;font-size:0}.faq-dialog{top:calc(var(--chrome-h) + 6px);right:6px;bottom:80px;width:calc(100vw - 12px);border-radius:23px}.faq-dialog__head{padding:19px}.faq-list{padding-inline:19px}.faq-whatsapp{margin-inline:19px}
@@ -172,4 +184,9 @@ body.has-overlay{overflow:hidden}
   .social-proof-strip span{font-size:8px}.dynamic-card h3{font-size:38px}
   .event-page .choice-grid button{min-height:66px}.event-page .field-grid--two{grid-template-columns:1fr}.event-page .page-header h2{font-size:43px}
   .product-row__main{grid-template-columns:62px 1fr}.product-row__image img{width:58px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .view{animation:none}
+  .package-card,.bio-link,.social-post__visual img{transition:none}
 }
