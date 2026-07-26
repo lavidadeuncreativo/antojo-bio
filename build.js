@@ -3,7 +3,19 @@ const path = require('node:path');
 
 const root = __dirname;
 const dist = path.join(root, 'dist');
-const files = ['index.html', 'app.css', 'home-upgrades.css', 'commerce-upgrades.css', 'app.js', 'experience-upgrades.js', 'favicon.svg', 'sw.js', 'renders'];
+const files = [
+  'index.html',
+  'app.css',
+  'home-upgrades.css',
+  'commerce-upgrades.css',
+  'v16-mobile.css',
+  'pricing.js',
+  'app.js',
+  'experience-upgrades.js',
+  'favicon.svg',
+  'sw.js',
+  'renders'
+];
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
@@ -14,12 +26,4 @@ for (const file of files) {
   fs.cpSync(from, path.join(dist, file), { recursive: true });
 }
 
-const mobileAudit = path.join(root, 'mobile-shipping-audit-v2.js');
-if (!fs.existsSync(mobileAudit)) throw new Error('Falta mobile-shipping-audit-v2.js');
-fs.appendFileSync(
-  path.join(dist, 'experience-upgrades.js'),
-  `\n\n${fs.readFileSync(mobileAudit, 'utf8')}\n`,
-  'utf8'
-);
-
-console.log('✓ ANTOJO. build listo');
+console.log('✓ ANTOJO. v17 build listo');
