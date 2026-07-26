@@ -31,6 +31,15 @@
     recompensas: 'Recompensas'
   });
 
+  const PURPOSES = Object.freeze([
+    { id: 'personal', label: 'Antojo personal', help: 'Para ti, tu casa o un pedido pequeño.' },
+    { id: 'reunion', label: 'Reunión', help: 'Comida, sobremesa o convivencia.' },
+    { id: 'cumpleanos', label: 'Cumpleaños', help: 'Celebración o mesa de bebidas.' },
+    { id: 'boda', label: 'Boda', help: 'Bienvenida, brindis o recepción.' },
+    { id: 'corporativo', label: 'Corporativo', help: 'Oficina, activación o marca.' },
+    { id: 'otro', label: 'Otro', help: 'Lo aterrizamos contigo.' }
+  ]);
+
   const ASSETS = Object.freeze({
     margarita: '/renders/01_margarita.png',
     mojito: '/renders/02_mojito_clasico.png',
@@ -91,7 +100,7 @@
     'mezcalita-jamaica', 'mojito-mocktail', 'cold-brew', 'margarita-mezcal', 'mariposa-mocktail'
   ]);
 
-  const STORAGE_KEY = 'antojo-state-v16';
+  const STORAGE_KEY = 'antojo-state-v17';
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({
@@ -107,38 +116,47 @@
     }
   }
 
+  function defaultContext() {
+    return { purpose: '', name: '', date: '', guests: '', place: '', notes: '' };
+  }
+
   function migrateState() {
     const current = safeJson(STORAGE_KEY, null);
     if (current) return current;
-    const oldQuantities = safeJson('antojo-selection-v15', safeJson('antojo-selection-v14', {}));
-    const oldOrder = safeJson('antojo-order-v2', {});
+    const v16 = safeJson('antojo-state-v16', null);
+    const oldQuantities = v16?.quantities || safeJson('antojo-selection-v15', safeJson('antojo-selection-v14', {}));
+    const oldOrder = v16?.order || safeJson('antojo-order-v2', {});
     return {
-      route: 'inicio',
-      filter: 'all',
-      search: '',
+      route: v16?.route || 'inicio',
+      filter: v16?.filter || 'all',
+      search: v16?.search || '',
       quantities: oldQuantities,
       order: {
         packageTarget: Number(oldOrder.packageTarget || 0),
-        personalizedRequested: Boolean(oldOrder.personalized || oldOrder.personalizedRequested),
+        personalizedRequested: Boolean(oldOrder.personalizedRequested || oldOrder.personalized),
         fulfillment: oldOrder.fulfillment === 'delivery' ? 'delivery' : 'pickup',
         postalCode: String(oldOrder.postalCode || '').replace(/\D/g, '').slice(0, 5),
-        shipping: { status: 'idle', fee: 0, distance: 0, label: '' }
+        shipping: { status: 'idle', fee: 0, distance: 0, label: '' },
+        context: { ...defaultContext(), ...(oldOrder.context || {}) }
       },
       event: {
-        step: 1,
-        type: '',
-        guests: 50,
-        servings: 1.5,
-        personalizedRequested: false,
-        name: '',
-        date: '',
-        place: '',
-        notes: ''
+        step: Number(v16?.event?.step || 1),
+        type: String(v16?.event?.type || ''),
+        guests: Number(v16?.event?.guests || 50),
+        servings: Number(v16?.event?.servings || 1.5),
+        personalizedRequested: Boolean(v16?.event?.personalizedRequested),
+        name: String(v16?.event?.name || ''),
+        date: String(v16?.event?.date || ''),
+        place: String(v16?.event?.place || ''),
+        notes: String(v16?.event?.notes || '')
       }
     };
   }
 
   const state = migrateState();
+  state.route = ROUTE_LABELS[state.route] ? state.route : 'inicio';
+  state.filter = FILTERS.some(([id]) => id === state.filter) ? state.filter : 'all';
+  state.search = String(state.search || '');
   state.quantities = state.quantities && typeof state.quantities === 'object' ? state.quantities : {};
   state.order = {
     packageTarget: Number(state.order?.packageTarget || 0),
@@ -147,7 +165,8 @@
     postalCode: String(state.order?.postalCode || '').replace(/\D/g, '').slice(0, 5),
     shipping: state.order?.shipping && typeof state.order.shipping === 'object'
       ? state.order.shipping
-      : { status: 'idle', fee: 0, distance: 0, label: '' }
+      : { status: 'idle', fee: 0, distance: 0, label: '' },
+    context: { ...defaultContext(), ...(state.order?.context || {}) }
   };
   state.event = {
     step: Math.min(3, Math.max(1, Number(state.event?.step || 1))),
@@ -169,13 +188,21 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
-      // The order remains usable when storage is unavailable.
+      // The experience remains usable without localStorage.
     }
   }
 
   function normalizeRoute(value) {
     const route = String(value || '').replace(/^#\/?/, '').trim();
     return Object.prototype.hasOwnProperty.call(ROUTE_LABELS, route) ? route : 'inicio';
+  }
+
+  function purposeLabel(id) {
+    return PURPOSES.find(item => item.id === id)?.label || 'Por definir';
+  }
+
+  function isEventPurpose(id) {
+    return Boolean(id && id !== 'personal');
   }
 
   function whatsappUrl(message) {
@@ -194,23 +221,19 @@
     node.textContent = message;
     node.classList.add('is-visible');
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => node.classList.remove('is-visible'), 3200);
-  }
-
-  function finishLoader() {
-    const loader = $('#loader');
-    if (!loader) return;
-    loader.classList.add('is-hidden');
-    document.documentElement.classList.remove('is-loading');
-    document.documentElement.classList.add('is-ready');
+    toast.timer = setTimeout(() => node.classList.remove('is-visible'), 3400);
   }
 
   function bootLoader() {
-    const started = performance.now();
-    const complete = () => setTimeout(finishLoader, Math.max(0, 450 - (performance.now() - started)));
-    if (document.readyState === 'complete') complete();
-    else window.addEventListener('load', complete, { once: true });
-    setTimeout(finishLoader, 1500);
+    const loader = $('#loader');
+    const finish = () => {
+      loader?.classList.add('is-hidden');
+      document.documentElement.classList.remove('is-loading');
+      document.documentElement.classList.add('is-ready');
+    };
+    if (document.readyState === 'complete') setTimeout(finish, 280);
+    else window.addEventListener('load', () => setTimeout(finish, 280), { once: true });
+    setTimeout(finish, 1600);
   }
 
   function setActiveNavigation(route) {
@@ -240,7 +263,7 @@
     $('#faqDialog')?.classList.add('is-open');
     $('#faqBackdrop')?.classList.add('is-open');
     document.body.classList.add('has-overlay');
-    setTimeout(() => $('#faqClose')?.focus(), 50);
+    setTimeout(() => $('#faqClose')?.focus(), 30);
   }
 
   function closeFaq() {
@@ -250,9 +273,11 @@
   }
 
   function openSelectionPanel() {
+    renderSelection();
     $('#orderPanel')?.classList.add('is-open');
     $('#selectionBackdrop')?.classList.add('is-open');
     document.body.classList.add('has-order-panel');
+    setTimeout(() => $('#selectionClose')?.focus(), 30);
   }
 
   function closeSelectionPanel() {
@@ -271,15 +296,15 @@
     if (next !== 'menu') closeSelectionPanel();
     if (next === 'menu') renderMenu();
     if (next === 'evento') renderEvent();
-    if (updateHash && location.hash !== `#${next}`) history.pushState(null, '', `#${next}`);
     saveState();
+    if (updateHash && location.hash !== `#${next}`) history.pushState(null, '', `#${next}`);
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    setTimeout(patchTickerCopy, 80);
+    window.dispatchEvent(new CustomEvent('antojo:route', { detail: { route: next } }));
   }
 
   function selectionItems() {
     return PRODUCTS
-      .map(product => ({ ...product, quantity: Math.max(0, Math.round(Number(state.quantities[product.id] || 0))) }))
+      .map(product => ({ ...product, quantity: Math.max(0, Number(state.quantities[product.id] || 0)) }))
       .filter(item => item.quantity > 0);
   }
 
@@ -294,11 +319,13 @@
   function setQuantity(id, value) {
     if (!PRODUCTS.some(product => product.id === id)) return;
     const next = Math.max(0, Math.min(9999, Math.round(Number(value) || 0)));
-    if (next) state.quantities[id] = next;
-    else delete state.quantities[id];
+    if (next === 0) delete state.quantities[id];
+    else state.quantities[id] = next;
     if (selectionTotal() < 50) state.order.personalizedRequested = false;
     saveState();
-    renderMenu();
+    renderPackages();
+    renderProducts();
+    renderSelection({ preserveScroll: true });
     scheduleShipping();
   }
 
@@ -316,25 +343,33 @@
     toast('Tu selección quedó vacía.');
   }
 
-  function applyPackage(value) {
-    const target = Number(value);
-    if (!PACKAGE_PRESETS.some(item => item.quantity === target)) return;
-    state.quantities = {};
+  function distributeQuantity(target) {
+    const quantities = {};
     const base = Math.floor(target / PACKAGE_PRODUCTS.length);
     let remainder = target % PACKAGE_PRODUCTS.length;
     PACKAGE_PRODUCTS.forEach(id => {
-      state.quantities[id] = base + (remainder > 0 ? 1 : 0);
+      quantities[id] = base + (remainder > 0 ? 1 : 0);
       remainder = Math.max(0, remainder - 1);
     });
+    return quantities;
+  }
+
+  function applyPackage(value) {
+    const target = Number(value);
+    if (!PACKAGE_PRESETS.some(item => item.quantity === target)) return;
+    state.quantities = distributeQuantity(target);
     state.order.packageTarget = target;
-    if (target < 50) state.order.personalizedRequested = false;
     saveState();
     renderMenu();
     scheduleShipping();
     requestAnimationFrame(() => {
-      document.querySelector(`[data-package="${target}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      document.querySelector(`[data-package="${target}"]`)?.scrollIntoView({
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
     });
-    toast(`Armamos una mezcla de ${target} bebidas. Puedes cambiar sabores y cantidades.`);
+    toast(`Armamos una mezcla sugerida de ${target} bebidas. Puedes cambiar sabores y cantidades.`);
   }
 
   function quantityControl(product, quantity, context) {
@@ -367,7 +402,7 @@
   }
 
   function filteredProducts() {
-    const query = String(state.search || '').toLowerCase().trim();
+    const query = state.search.toLowerCase().trim();
     return PRODUCTS.filter(product => {
       const categoryMatches = state.filter === 'all'
         || (state.filter === 'favorites' && product.favorite)
@@ -390,14 +425,14 @@
         <div class="product-row__main">
           <div class="product-row__image"><img src="${product.image}" alt="Lata de ${esc(product.name)}" loading="lazy" decoding="async"></div>
           <div class="product-row__copy">
-            <div class="product-row__labels">${quantity > 0 ? '<i class="selected-label">Seleccionada</i>' : ''}${labels.map(label => `<i>${label}</i>`).join('')}</div>
+            <div class="product-row__labels">${quantity > 0 ? `<i class="selected-label">Seleccionada · ${quantity}</i>` : ''}${labels.map(label => `<i>${label}</i>`).join('')}</div>
             <h3>${esc(product.name)}</h3>
             <p>${esc(product.description)}</p>
           </div>
         </div>
         <div class="product-row__facts">${product.facts.map(fact => `<span>${esc(fact)}</span>`).join('')}</div>
         <div class="product-row__action">
-          <span class="product-row__price">$65 individual · hasta $50 por volumen</span>
+          <span class="product-row__price">$65 individual · precio menor por volumen total</span>
           ${quantityControl(product, quantity, 'catalog')}
         </div>
       </article>`;
@@ -411,6 +446,7 @@
       summary.innerHTML = `
         <section class="selection-overview" id="selectionOverview"></section>
         <section class="selection-items-container" id="selectionItemsContainer"></section>
+        <section class="order-context" id="orderContextContainer"></section>
         <section class="order-config" id="orderConfigContainer"></section>
         <section class="selection-totals" id="orderTotalsContainer"></section>`;
     }
@@ -422,7 +458,8 @@
     if (!node) return;
     const total = selectionTotal();
     const flavors = selectedFlavorCount();
-    node.innerHTML = `<div><small>BEBIDAS SELECCIONADAS</small><strong>${flavors} ${flavors === 1 ? 'sabor' : 'sabores'}</strong></div><b>${total} ${total === 1 ? 'lata' : 'latas'}</b>`;
+    node.innerHTML = `<div><small>TU PEDIDO</small><strong>${flavors} ${flavors === 1 ? 'sabor' : 'sabores'} · ${total} ${total === 1 ? 'lata' : 'latas'}</strong></div>
+      <button type="button" class="selection-jump" data-scroll-selection ${!total ? 'disabled' : ''}>Ver bebidas</button>`;
   }
 
   function renderSelectionItems() {
@@ -438,6 +475,40 @@
       : '<div class="selection-empty selection-empty--compact"><div><span>+</span><h4>Todavía no eliges bebidas.</h4><p>Elige un paquete o escribe cantidades directamente.</p></div></div>';
   }
 
+  function contextInput(id, label, value, options = {}) {
+    const type = options.type || 'text';
+    const attrs = [
+      `id="${id}"`,
+      `type="${type}"`,
+      options.inputmode ? `inputmode="${options.inputmode}"` : '',
+      options.min ? `min="${options.min}"` : '',
+      options.max ? `max="${options.max}"` : '',
+      options.maxlength ? `maxlength="${options.maxlength}"` : '',
+      options.placeholder ? `placeholder="${esc(options.placeholder)}"` : '',
+      `value="${esc(value)}"`
+    ].filter(Boolean).join(' ');
+    return `<label class="order-field"><span>${label}</span><input ${attrs}></label>`;
+  }
+
+  function renderOrderContext() {
+    const node = $('#orderContextContainer');
+    if (!node) return;
+    const context = state.order.context;
+    const eventPurpose = isEventPurpose(context.purpose);
+    const purposeButtons = PURPOSES.map(item => `<button type="button" class="${context.purpose === item.id ? 'is-active' : ''}" data-order-purpose="${item.id}" aria-pressed="${context.purpose === item.id}">
+      <b>${item.label}</b><small>${item.help}</small>
+    </button>`).join('');
+    node.innerHTML = `<div class="order-section-title"><span>PASO 1</span><h4>¿Para qué es tu pedido?</h4><p>Esto cambia los datos que necesitamos para cotizar bien.</p></div>
+      <div class="purpose-options">${purposeButtons}</div>
+      ${context.purpose ? `<div class="order-context-fields">
+        ${contextInput('orderContactName', 'Nombre de contacto', context.name, { maxlength: 100, placeholder: 'Tu nombre' })}
+        ${contextInput('orderNeededDate', eventPurpose ? 'Fecha del evento' : 'Fecha en que lo necesitas', context.date, { type: 'date' })}
+        ${eventPurpose ? contextInput('orderGuests', 'Personas o invitados', context.guests, { type: 'number', min: 1, max: 5000, inputmode: 'numeric', placeholder: 'Ej. 80' }) : ''}
+        ${eventPurpose ? contextInput('orderPlace', 'Lugar o zona', context.place, { maxlength: 180, placeholder: 'Ej. Roma Norte, CDMX' }) : ''}
+        <label class="order-field order-field--full"><span>Notas del pedido</span><textarea id="orderNotes" maxlength="800" placeholder="Horario, montaje, sabores especiales o algo importante…">${esc(context.notes)}</textarea></label>
+      </div>` : '<p class="order-context-hint">Selecciona una opción para continuar con los datos correctos.</p>'}`;
+  }
+
   function packageProgressHtml() {
     const target = Number(state.order.packageTarget || 0);
     if (!target) return '';
@@ -448,7 +519,7 @@
       : total === target
         ? 'Tu paquete está completo.'
         : `Llevas ${total - target} bebidas extra.`;
-    return `<div class="package-progress"><div><span>Pack de ${target}</span><b>${total}/${target}</b></div><i><em style="width:${progress}%"></em></i><small>${message}</small></div>`;
+    return `<div class="package-progress"><div><span>Objetivo de ${target}</span><b>${total}/${target}</b></div><i><em style="width:${progress}%"></em></i><small>${message}</small></div>`;
   }
 
   function shippingHelpText() {
@@ -467,10 +538,11 @@
     const total = selectionTotal();
     const personalizationDisabled = total < 50;
     if (personalizationDisabled) state.order.personalizedRequested = false;
-    node.innerHTML = `${packageProgressHtml()}
+    node.innerHTML = `<div class="order-section-title"><span>PASO 2</span><h4>Presentación y entrega</h4></div>
+      ${packageProgressHtml()}
       <label class="order-toggle ${personalizationDisabled ? 'is-disabled' : ''}">
         <input type="checkbox" id="orderPersonalized" ${state.order.personalizedRequested ? 'checked' : ''} ${personalizationDisabled ? 'disabled' : ''}>
-        <span><b>Quiero latas personalizadas</b><small>${personalizationDisabled ? 'Disponible desde 50 bebidas.' : 'Costo por cotizar según diseño, impresión y colocación.'}</small></span>
+        <span><b>Quiero latas personalizadas</b><small>${personalizationDisabled ? 'Disponible desde 50 bebidas.' : 'Se solicita ahora y se cotiza según diseño, impresión, colocación y merma.'}</small></span>
       </label>
       <fieldset class="fulfillment-options"><legend>¿Cómo las recibes?</legend>
         <button type="button" class="${state.order.fulfillment === 'pickup' ? 'is-active' : ''}" data-fulfillment="pickup" aria-pressed="${state.order.fulfillment === 'pickup'}"><b>${CONFIG.pickupLabel}</b><small>Sin costo</small></button>
@@ -495,6 +567,15 @@
     return '<p class="selection-note selection-note--logistics"><b>Logística de refrigeración por confirmar.</b> Hielo, hieleras de servicio, montaje, barra y catering se cotizan aparte cuando correspondan.</p>';
   }
 
+  function orderContextComplete() {
+    const context = state.order.context;
+    if (!context.purpose || context.name.trim().length < 2) return false;
+    if (isEventPurpose(context.purpose)) {
+      return Boolean(context.date && Number(context.guests) > 0 && context.place.trim().length >= 2);
+    }
+    return true;
+  }
+
   function renderOrderTotals() {
     const node = $('#orderTotalsContainer');
     if (!node) return;
@@ -504,17 +585,21 @@
     const delivery = shippingDisplay();
     const grandTotal = subtotal + delivery.fee;
     const personalization = state.order.personalizedRequested ? 'Solicitada · por cotizar' : 'No solicitada';
-    const disabled = total === 0 || (state.order.fulfillment === 'delivery' && (total < CONFIG.minimumDeliveryQuantity || !/^\d{5}$/.test(state.order.postalCode) || state.order.shipping.status === 'loading'));
-    node.innerHTML = `
+    const deliveryBlocked = state.order.fulfillment === 'delivery'
+      && (total < CONFIG.minimumDeliveryQuantity || !/^\d{5}$/.test(state.order.postalCode) || state.order.shipping.status === 'loading');
+    const disabled = total === 0 || !orderContextComplete() || deliveryBlocked;
+    node.innerHTML = `<div class="order-section-title"><span>PASO 3</span><h4>Resumen</h4></div>
+      <div class="selection-total-row"><span>Uso del pedido</span><b>${esc(purposeLabel(state.order.context.purpose))}</b></div>
       <div class="selection-total-row"><span>Bebidas</span><b>${total}</b></div>
       <div class="selection-total-row"><span>Precio por bebida</span><b>${price ? `$${price}` : '—'}</b></div>
       <div class="selection-total-row"><span>Subtotal de bebidas</span><b>$${subtotal.toLocaleString('es-MX')} MXN</b></div>
       <div class="selection-total-row"><span>Personalización</span><b>${personalization}</b></div>
       <div class="selection-total-row"><span>${delivery.label}</span><b>${delivery.value}</b></div>
       <div class="selection-total-row selection-total-row--strong"><span>Total estimado</span><b>$${grandTotal.toLocaleString('es-MX')} MXN</b></div>
-      <p class="selection-note">El total no incluye personalización ni ingredientes especiales. Disponibilidad, entrega y costo final se confirman antes del cobro.</p>
+      <p class="selection-note">El total no incluye personalización, ingredientes especiales, barra ni catering. Disponibilidad, entrega y costo final se confirman antes del cobro.</p>
+      ${!orderContextComplete() ? '<p class="selection-note selection-note--warning">Completa el tipo de pedido y los datos de contacto para continuar.</p>' : ''}
       ${coldChainNote(total)}
-      <div class="selection-actions"><button class="selection-actions__primary" type="button" data-send-selection ${disabled ? 'disabled' : ''}>Continuar por WhatsApp</button><button class="selection-actions__secondary" type="button" data-clear-selection ${!total ? 'disabled' : ''}>Vaciar selección</button></div>`;
+      <div class="selection-actions"><button class="selection-actions__primary" type="button" data-send-selection ${disabled ? 'disabled' : ''}>Continuar por WhatsApp</button><button class="selection-actions__secondary" type="button" data-clear-selection ${!total ? 'disabled' : ''}>Vaciar bebidas</button></div>`;
   }
 
   function fulfillmentCopy() {
@@ -537,20 +622,21 @@
     const subtotal = total * price;
     const delivery = shippingDisplay();
     const grandTotal = subtotal + delivery.fee;
-    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${price} c/u</b><span>${esc(fulfillmentCopy())} · Total $${grandTotal.toLocaleString('es-MX')}</span></p><button type="button" data-selection-toggle>Ver selección</button>`;
+    bar.innerHTML = `<p><b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${price} c/u</b><span>${esc(fulfillmentCopy())} · Total $${grandTotal.toLocaleString('es-MX')}</span></p><button type="button" data-selection-toggle>Revisar pedido</button>`;
     bar.classList.add('is-visible');
   }
 
   function renderSelection(options = {}) {
     const summary = ensureSelectionScaffold();
     if (!summary) return;
-    const oldScroll = summary.scrollTop;
-    renderSelectionOverview();
-    if (!options.configOnly) renderSelectionItems();
-    renderOrderConfig();
-    renderOrderTotals();
-    renderSelectionBar();
-    if (options.preserveScroll) requestAnimationFrame(() => { summary.scrollTop = oldScroll; });
+    const scrollTop = summary.scrollTop;
+    if (options.overview !== false) renderSelectionOverview();
+    if (options.items !== false) renderSelectionItems();
+    if (options.context !== false) renderOrderContext();
+    if (options.config !== false) renderOrderConfig();
+    if (options.totals !== false) renderOrderTotals();
+    if (options.bar !== false) renderSelectionBar();
+    if (options.preserveScroll) requestAnimationFrame(() => { summary.scrollTop = scrollTop; });
   }
 
   function renderMenu() {
@@ -624,18 +710,18 @@
     if (state.order.fulfillment !== 'delivery') {
       state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
       saveState();
-      renderSelection({ configOnly: true, preserveScroll: true });
+      renderSelection({ items: false, context: false, preserveScroll: true });
       return;
     }
     if (total < CONFIG.minimumDeliveryQuantity || !/^\d{5}$/.test(postalCode)) {
       state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
       saveState();
-      renderSelection({ configOnly: true, preserveScroll: true });
+      renderSelection({ items: false, context: false, preserveScroll: true });
       return;
     }
     state.order.shipping = { status: 'loading', fee: 0, distance: 0, label: 'Calculando…' };
     saveState();
-    renderSelection({ configOnly: true, preserveScroll: true });
+    renderSelection({ items: false, context: false, preserveScroll: true });
     try {
       const [origin, destination] = await Promise.all([originCoordinates(), postalCoordinates(postalCode)]);
       if (serial !== shippingSerial) return;
@@ -652,7 +738,7 @@
       state.order.shipping = { status: 'error', fee: 0, distance: 0, label: 'Por confirmar por WhatsApp' };
     }
     saveState();
-    renderSelection({ configOnly: true, preserveScroll: true });
+    renderSelection({ items: false, context: false, preserveScroll: true });
   }
 
   function scheduleShipping(delay = 300) {
@@ -667,38 +753,54 @@
     const subtotal = total * price;
     const delivery = shippingDisplay();
     const grandTotal = subtotal + delivery.fee;
+    const context = state.order.context;
     const shippingLine = state.order.fulfillment === 'pickup'
       ? 'Recolección en WTC: $0'
       : state.order.shipping.status === 'ready'
         ? `Entrega a domicilio · CP ${state.order.postalCode}: $${delivery.fee} MXN estimados`
         : `Entrega a domicilio · CP ${state.order.postalCode}: por confirmar`;
-    return `Hola, quiero pedir ANTOJO.\n\nMi selección:\n${items.map(item => `${item.quantity} × ${item.name}`).join('\n')}\n\nTotal: ${total} bebidas\nPrecio base: $${price} c/u\nSubtotal de bebidas: $${subtotal.toLocaleString('es-MX')} MXN\nPersonalización: ${state.order.personalizedRequested ? 'Solicitada · por cotizar' : 'No solicitada'}\n${shippingLine}\nTotal estimado sin personalización: $${grandTotal.toLocaleString('es-MX')} MXN\n${total >= 150 ? 'Logística de refrigeración: por confirmar\n' : ''}\n¿Me ayudan a confirmar disponibilidad, ingredientes especiales, entrega, personalización y total final antes del cobro?`;
+    return `Hola, quiero pedir ANTOJO.
+
+Tipo de pedido: ${purposeLabel(context.purpose)}
+Nombre: ${context.name || 'Por definir'}
+Fecha: ${context.date || 'Por definir'}${isEventPurpose(context.purpose) ? `
+Personas/invitados: ${context.guests || 'Por definir'}
+Lugar o zona: ${context.place || 'Por definir'}` : ''}
+Notas: ${context.notes || 'Sin notas adicionales'}
+
+Mi selección:
+${items.map(item => `${item.quantity} × ${item.name}`).join('\n')}
+
+Total: ${total} bebidas
+Precio base: $${price} c/u
+Subtotal de bebidas: $${subtotal.toLocaleString('es-MX')} MXN
+Personalización: ${state.order.personalizedRequested ? 'Solicitada · por cotizar' : 'No solicitada'}
+${shippingLine}
+Total estimado sin personalización: $${grandTotal.toLocaleString('es-MX')} MXN
+${total >= 150 ? 'Logística de refrigeración: por confirmar\n' : ''}
+¿Me ayudan a confirmar disponibilidad, ingredientes especiales, entrega, personalización y total final antes del cobro?`;
   }
 
   function validateOrderBeforeSend() {
     const total = selectionTotal();
-    if (!total) {
-      toast('Agrega al menos una bebida para continuar.');
-      return false;
+    const context = state.order.context;
+    if (!total) return toast('Agrega al menos una bebida para continuar.'), false;
+    if (!context.purpose) return toast('Indica para qué es tu pedido.'), false;
+    if (context.name.trim().length < 2) return toast('Escribe un nombre de contacto.'), false;
+    if (isEventPurpose(context.purpose)) {
+      if (!context.date) return toast('Selecciona la fecha del evento.'), false;
+      if (!(Number(context.guests) > 0)) return toast('Indica cuántas personas asistirán.'), false;
+      if (context.place.trim().length < 2) return toast('Escribe el lugar o zona del evento.'), false;
     }
-    if (state.order.personalizedRequested && total < 50) {
-      toast('La personalización está disponible desde 50 piezas.');
-      return false;
-    }
+    if (state.order.personalizedRequested && total < 50) return toast('La personalización está disponible desde 50 piezas.'), false;
     if (state.order.fulfillment === 'delivery') {
-      if (total < CONFIG.minimumDeliveryQuantity) {
-        toast(`La entrega está disponible desde ${CONFIG.minimumDeliveryQuantity} bebidas.`);
-        return false;
-      }
+      if (total < CONFIG.minimumDeliveryQuantity) return toast(`La entrega está disponible desde ${CONFIG.minimumDeliveryQuantity} bebidas.`), false;
       if (!/^\d{5}$/.test(state.order.postalCode)) {
         toast('Escribe un código postal válido de 5 dígitos.');
         $('#orderPostalCode')?.focus();
         return false;
       }
-      if (state.order.shipping.status === 'loading') {
-        toast('Estamos actualizando el costo de envío.');
-        return false;
-      }
+      if (state.order.shipping.status === 'loading') return toast('Estamos actualizando el costo de envío.'), false;
     }
     return true;
   }
@@ -708,8 +810,7 @@
   }
 
   function syncEventInputs() {
-    const numberFields = [['#guestCount', 'guests'], ['#servings', 'servings']];
-    numberFields.forEach(([selector, key]) => {
+    [['#guestCount', 'guests'], ['#servings', 'servings']].forEach(([selector, key]) => {
       const node = $(selector);
       if (node) state.event[key] = Number(node.value) || 1;
     });
@@ -750,8 +851,19 @@
     const copy = row?.querySelector('small');
     if (copy) copy.textContent = quantity < 50
       ? 'Disponible desde 50 piezas.'
-      : 'Costo por cotizar según diseño, impresión y colocación.';
+      : 'Se solicita ahora y se cotiza según diseño, impresión y colocación.';
     renderEventSummary();
+  }
+
+  function ensureDirectQuoteButton() {
+    const actions = $('.event-page .form-actions');
+    if (!actions || $('#eventQuoteDirect')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'eventQuoteDirect';
+    button.className = 'button button--secondary event-direct-quote';
+    button.textContent = 'Cotizar sin elegir sabores';
+    actions.appendChild(button);
   }
 
   function renderEvent() {
@@ -767,7 +879,7 @@
     if (label) label.textContent = desktop ? 'Cotización completa' : `Paso ${step} de 3`;
     if (progress) progress.style.width = desktop ? '100%' : `${step * 33.333}%`;
     if (back) back.textContent = desktop || step === 1 ? 'Volver' : 'Atrás';
-    if (next) next.textContent = desktop || step === 3 ? 'Continuar en WhatsApp' : 'Continuar';
+    if (next) next.textContent = desktop || step === 3 ? 'Elegir sabores' : 'Continuar';
     const error = $('#eventError');
     if (error) error.textContent = '';
     $$('[data-choice-group="eventType"] button').forEach(button => button.classList.toggle('is-active', button.dataset.value === state.event.type));
@@ -777,14 +889,42 @@
     });
     const personalized = $('#personalized');
     if (personalized) personalized.checked = state.event.personalizedRequested;
+    ensureDirectQuoteButton();
+    const direct = $('#eventQuoteDirect');
+    if (direct) direct.hidden = !(desktop || step === 3);
     updateEventMath();
+  }
+
+  function eventPurposeId(type) {
+    const map = {
+      Boda: 'boda',
+      Cumpleaños: 'cumpleanos',
+      'Evento corporativo': 'corporativo',
+      'Reunión privada': 'reunion',
+      Otro: 'otro'
+    };
+    return map[type] || 'otro';
   }
 
   function eventMessage() {
     const quantity = suggestedQuantity();
     const price = getUnitPrice(quantity);
     const subtotal = quantity * price;
-    return `Hola, quiero cotizar un evento con ANTOJO.\n\nNombre: ${state.event.name || 'Por definir'}\nTipo de evento: ${state.event.type}\nPersonas: ${state.event.guests}\nCantidad sugerida: ${quantity} latas\nPrecio base estimado: $${price} c/u\nSubtotal estimado de bebidas: $${subtotal.toLocaleString('es-MX')} MXN\nServicio: ${state.event.servings} bebida${state.event.servings === 1 ? '' : 's'} por persona\nPersonalización: ${state.event.personalizedRequested ? 'Solicitada · por cotizar' : 'No solicitada'}\nFecha: ${state.event.date || 'Por definir'}\nLugar: ${state.event.place || 'Por definir'}\nNotas: ${state.event.notes || 'Sin notas adicionales'}\n\nEl estimado no incluye envío, ingredientes especiales, barra, catering ni logística adicional. ¿Me ayudan a confirmar opciones, disponibilidad y total final?`;
+    return `Hola, quiero cotizar un evento con ANTOJO.
+
+Nombre: ${state.event.name || 'Por definir'}
+Tipo de evento: ${state.event.type}
+Personas: ${state.event.guests}
+Cantidad sugerida: ${quantity} latas
+Precio base estimado: $${price} c/u
+Subtotal estimado de bebidas: $${subtotal.toLocaleString('es-MX')} MXN
+Servicio: ${state.event.servings} bebida${state.event.servings === 1 ? '' : 's'} por persona
+Personalización: ${state.event.personalizedRequested ? 'Solicitada · por cotizar' : 'No solicitada'}
+Fecha: ${state.event.date || 'Por definir'}
+Lugar: ${state.event.place || 'Por definir'}
+Notas: ${state.event.notes || 'Sin notas adicionales'}
+
+El estimado no incluye envío, ingredientes especiales, barra, catering ni logística adicional. ¿Me ayudan a confirmar opciones, disponibilidad y total final?`;
   }
 
   function validateEventAll() {
@@ -794,41 +934,64 @@
       if (error) error.textContent = 'Elige el tipo de evento.';
       return false;
     }
-    if (state.event.personalizedRequested && suggestedQuantity() < 50) {
-      if (error) error.textContent = 'La personalización está disponible desde 50 piezas.';
-      return false;
-    }
     if (state.event.name.length < 2) {
       if (error) error.textContent = 'Escribe tu nombre para dar seguimiento.';
       $('#contactName')?.focus();
       return false;
     }
+    if (!state.event.date) {
+      if (error) error.textContent = 'Selecciona la fecha del evento.';
+      $('#eventDate')?.focus();
+      return false;
+    }
+    if (state.event.place.length < 2) {
+      if (error) error.textContent = 'Escribe el lugar o zona.';
+      $('#eventPlace')?.focus();
+      return false;
+    }
     return true;
   }
 
+  function transferEventToOrder() {
+    if (!validateEventAll()) return;
+    const quantity = suggestedQuantity();
+    state.order.context = {
+      purpose: eventPurposeId(state.event.type),
+      name: state.event.name,
+      date: state.event.date,
+      guests: String(state.event.guests),
+      place: state.event.place,
+      notes: state.event.notes
+    };
+    state.order.personalizedRequested = state.event.personalizedRequested && quantity >= 50;
+    if (!state.order.packageTarget) state.order.packageTarget = quantity;
+    saveState();
+    navigate('menu');
+    setTimeout(() => {
+      if (selectionTotal()) openSelectionPanel();
+      else {
+        document.querySelector('.package-picker')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        toast(`Tu evento quedó guardado. Ahora elige sabores hasta completar ${quantity} bebidas.`);
+      }
+    }, 180);
+  }
+
   function scrollEventCardToTop() {
-    requestAnimationFrame(() => $('.onboarding-card')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
+    requestAnimationFrame(() => $('.onboarding-card')?.scrollIntoView({
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start'
+    }));
   }
 
   function eventNext() {
     syncEventInputs();
     const error = $('#eventError');
-    if (isDesktopEvent()) {
-      if (validateEventAll()) openWhatsApp(eventMessage());
-      return;
-    }
+    if (isDesktopEvent()) return transferEventToOrder();
     if (state.event.step === 1 && !state.event.type) {
       if (error) error.textContent = 'Elige el tipo de evento para continuar.';
       return;
     }
-    if (state.event.step === 2 && state.event.personalizedRequested && suggestedQuantity() < 50) {
-      if (error) error.textContent = 'La personalización está disponible desde 50 piezas.';
-      return;
-    }
-    if (state.event.step === 3) {
-      if (validateEventAll()) openWhatsApp(eventMessage());
-      return;
-    }
+    if (state.event.step === 3) return transferEventToOrder();
     state.event.step += 1;
     saveState();
     renderEvent();
@@ -846,23 +1009,21 @@
     scrollEventCardToTop();
   }
 
-  function patchStaticCopy() {
-    const menuCopy = $('.menu-page .page-header > p:last-child');
-    if (menuCopy) menuCopy.textContent = 'Elige un paquete, combina sabores, escribe cantidades y solicita personalización o entrega.';
-    const eventToggleCopy = $('#personalized')?.closest('.toggle-row')?.querySelector('small');
-    if (eventToggleCopy) eventToggleCopy.textContent = 'Disponible desde 50 piezas. Costo por cotizar.';
-    const faqs = $$('.faq-list details');
-    if (faqs[1]?.querySelector('p')) faqs[1].querySelector('p').textContent = 'El precio se calcula por la cantidad total: 1 a 29 en $65, 30 a 59 en $60, 60 a 149 en $55, 150 a 199 en $54, 200 a 299 en $53, 300 a 499 en $52 y 500 o más en $50 por bebida. Envío y personalización se cotizan aparte.';
-    if (faqs[4]?.querySelector('p')) faqs[4].querySelector('p').textContent = 'La página estima la entrega desde nuestro punto operativo usando el código postal, la distancia aproximada y el volumen. La tarifa se confirma antes del cobro.';
-    if (faqs[5]?.querySelector('p')) faqs[5].querySelector('p').textContent = 'La personalización está disponible desde 50 piezas. Su costo depende del diseño, impresión, colocación y merma, por lo que se confirma antes del cobro.';
-  }
-
-  function patchTickerCopy() {
-    $$('#announcementTrack strong, #announcementLive').forEach(node => {
-      node.textContent = node.textContent
-        .replace('Personalización por +$10 por lata desde 50 piezas', 'Personalización disponible desde 50 piezas · costo por cotizar')
-        .replace('Personalización disponible desde 50 piezas', 'Personalización desde 50 piezas · costo por cotizar');
-    });
+  function syncOrderContextInput(target) {
+    const map = {
+      orderContactName: ['name', 100],
+      orderNeededDate: ['date', 20],
+      orderGuests: ['guests', 6],
+      orderPlace: ['place', 180],
+      orderNotes: ['notes', 800]
+    };
+    const config = map[target.id];
+    if (!config) return false;
+    const [key, max] = config;
+    state.order.context[key] = String(target.value || '').slice(0, max);
+    saveState();
+    renderOrderTotals();
+    return true;
   }
 
   function bind() {
@@ -873,6 +1034,7 @@
         navigate(route.dataset.route);
         return;
       }
+
       if (event.target.closest('[data-faq-open]')) {
         event.preventDefault();
         closeDrawer();
@@ -884,41 +1046,57 @@
         closeFaq();
         return;
       }
+
       const whatsapp = event.target.closest('[data-whatsapp]');
       if (whatsapp) {
         event.preventDefault();
         openWhatsApp(whatsapp.dataset.whatsapp);
         return;
       }
+
       const filter = event.target.closest('[data-filter]');
       if (filter) {
         state.filter = filter.dataset.filter;
         saveState();
-        renderMenu();
+        renderFilters();
+        renderProducts();
         return;
       }
+
       const packageButton = event.target.closest('[data-package]');
       if (packageButton) {
         applyPackage(packageButton.dataset.package);
         return;
       }
+
+      const purpose = event.target.closest('[data-order-purpose]');
+      if (purpose) {
+        state.order.context.purpose = purpose.dataset.orderPurpose;
+        saveState();
+        renderOrderContext();
+        renderOrderTotals();
+        return;
+      }
+
       const fulfillment = event.target.closest('[data-fulfillment]');
       if (fulfillment) {
         const summary = $('#selectionSummary');
-        const oldScroll = summary?.scrollTop || 0;
+        const scrollTop = summary?.scrollTop || 0;
         state.order.fulfillment = fulfillment.dataset.fulfillment === 'delivery' ? 'delivery' : 'pickup';
         if (state.order.fulfillment === 'pickup') state.order.shipping = { status: 'idle', fee: 0, distance: 0, label: '' };
         saveState();
-        renderSelection({ configOnly: true, preserveScroll: true });
-        requestAnimationFrame(() => { if (summary) summary.scrollTop = oldScroll; });
+        renderSelection({ overview: false, items: false, context: false, preserveScroll: true });
+        requestAnimationFrame(() => { if (summary) summary.scrollTop = scrollTop; });
         scheduleShipping(40);
         return;
       }
+
       const quantity = event.target.closest('[data-qty-id]');
       if (quantity) {
         updateQuantity(quantity.dataset.qtyId, Number(quantity.dataset.delta));
         return;
       }
+
       const eventType = event.target.closest('[data-choice-group="eventType"] [data-value]');
       if (eventType) {
         state.event.type = eventType.dataset.value;
@@ -926,8 +1104,13 @@
         renderEvent();
         return;
       }
+
       if (event.target.closest('[data-selection-toggle]')) {
         openSelectionPanel();
+        return;
+      }
+      if (event.target.closest('[data-scroll-selection]')) {
+        $('#selectionItemsContainer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
       if (event.target.closest('[data-send-selection]')) {
@@ -938,23 +1121,31 @@
         clearSelection();
         return;
       }
+      if (event.target.closest('#eventQuoteDirect')) {
+        if (validateEventAll()) openWhatsApp(eventMessage());
+        return;
+      }
       if (event.target.closest('#eventNext')) {
         eventNext();
         return;
       }
-      if (event.target.closest('#eventBack')) eventBack();
+      if (event.target.closest('#eventBack')) {
+        eventBack();
+      }
     });
 
     document.addEventListener('change', event => {
       if (event.target.matches('#orderPersonalized')) {
         state.order.personalizedRequested = event.target.checked;
         saveState();
-        renderSelection({ configOnly: true, preserveScroll: true });
+        renderOrderTotals();
         return;
       }
       if (event.target.matches('[data-qty-input]')) {
         setQuantity(event.target.dataset.qtyInput, event.target.value);
+        return;
       }
+      if (syncOrderContextInput(event.target)) return;
     });
 
     document.addEventListener('input', event => {
@@ -966,7 +1157,9 @@
         renderOrderTotals();
         renderSelectionBar();
         scheduleShipping();
+        return;
       }
+      syncOrderContextInput(event.target);
     });
 
     document.addEventListener('keydown', event => {
@@ -989,11 +1182,11 @@
     $('#selectionClose')?.addEventListener('click', closeSelectionPanel);
     $('#selectionBackdrop')?.addEventListener('click', closeSelectionPanel);
     $('#faqBackdrop')?.addEventListener('click', closeFaq);
+
     $('#menuSearch')?.addEventListener('input', event => {
       state.search = event.target.value;
       saveState();
       renderProducts();
-      renderSelectionBar();
     });
 
     ['input', 'change'].forEach(type => {
@@ -1008,25 +1201,17 @@
 
     window.addEventListener('hashchange', () => navigate(normalizeRoute(location.hash), false));
     window.addEventListener('popstate', () => navigate(normalizeRoute(location.hash), false));
-    window.addEventListener('resize', () => {
-      if (innerWidth > 980) closeSelectionPanel();
-      renderEvent();
-    });
+    window.addEventListener('resize', () => renderEvent());
   }
 
   function start() {
-    window.ANTOJO_COLD_CHAIN_CONFIG = COLD_CHAIN_CONFIG;
+    void COLD_CHAIN_CONFIG;
     bootLoader();
-    patchStaticCopy();
     bind();
     renderMenu();
     renderEvent();
-    navigate(normalizeRoute(location.hash || state.route), false);
+    navigate(normalizeRoute(location.hash), false);
     scheduleShipping(120);
-    setTimeout(() => {
-      patchStaticCopy();
-      patchTickerCopy();
-    }, 300);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
