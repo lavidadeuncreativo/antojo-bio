@@ -3,34 +3,32 @@
 
   const TICKERS = {
     inicio: [
-      '¡Ya somos 15K en Instagram!',
-      'Pedidos del 22 al 31 de julio participan por un pack doble',
+      'Bebidas frías en lata · hechas en CDMX',
+      'Pedidos personales, eventos y marcas',
       '18 sabores · con y sin alcohol',
       'Entregas de viernes a domingo en CDMX'
     ],
     menu: [
-      'Favoritos: mojito mariposa · espresso horchata · maracuyá',
-      'Paquetes desde 50 hasta +500 bebidas',
-      'Personalización por +$10 por lata desde 50 piezas',
+      'El precio se calcula por la cantidad total',
+      'Personalización desde 50 piezas · costo por cotizar',
+      'Indica si es para ti, una boda, cumpleaños o empresa',
       'Recoge en WTC o calcula entrega con tu código postal'
     ],
     evento: [
-      'Cotiza todo desde una sola vista',
-      'Bodas · cumpleaños · oficinas · activaciones',
-      'Personalización disponible desde 50 piezas',
-      'Fechas sujetas a disponibilidad'
+      'Bodas · cumpleaños · reuniones · corporativos',
+      'Define personas, fecha y lugar antes de elegir sabores',
+      'Personalización desde 50 piezas · costo por cotizar',
+      'Barra, catering y logística se cotizan aparte'
     ],
     dinamicas: [
-      'Deja tu reseña en Google y desbloquea una bebida',
-      'Giveaway: 20 latas · 10 packs dobles',
       'Etiqueta a @antojo.bebidas en tu foto',
-      'Contenido real de la comunidad ANTOJO.'
+      'Contenido real de la comunidad ANTOJO.',
+      'Consulta vigencia y bases de cada dinámica'
     ],
     recompensas: [
       '5 compras · 1 recompensa',
       'Registra cada pedido con tu número de WhatsApp',
-      'Acumula sellos con ANTOJO. Club',
-      'Tu quinto antojo viene con premio'
+      'ANTOJO. Club está en etapa piloto'
     ]
   };
 
@@ -40,319 +38,115 @@
     ['/renders/09_maracuya.png', 'Un antojo tropical listo para tomar.'],
     ['/renders/13_mezcalita_de_jamaica.png', 'Jamaica, limón y mezcal.'],
     ['/renders/04_horchata.png', 'La cremosa que se acaba primero.'],
-    ['/renders/02_mojito_clasico.png', 'El clásico para compartir.'],
-    ['/renders/11_cold_brew_vainilla.png', 'Café frío para planes largos.'],
-    ['/renders/08_clericot.png', 'Una mesa con color sabe mejor.'],
-    ['/renders/07_pepino_limon.png', 'Fresco, verde y muy de repetir.'],
-    ['/renders/01_margarita.png', 'Para cuando el antojo pide algo cítrico.']
+    ['/renders/02_mojito_clasico.png', 'El clásico para compartir.']
   ];
 
-  const PREFERRED_FAVORITES = new Set([
-    'Mojito mariposa',
-    'Espresso horchata',
-    'Maracuyá con mezcal'
-  ]);
-
-  const ROUTE_EVENTS = {
-    inicio: 'return_home',
-    menu: 'open_menu',
-    evento: 'open_event_quote',
-    dinamicas: 'open_dynamics',
-    recompensas: 'open_rewards'
+  const route = () => {
+    const value = String(location.hash || '').replace(/^#\/?/, '').trim();
+    return Object.prototype.hasOwnProperty.call(TICKERS, value) ? value : 'inicio';
   };
-
-  let favoriteMode = false;
-  let switchingToAll = false;
-  let patchQueued = false;
-
-  const normalizeRoute = value => {
-    const route = String(value || '').replace(/^#\/?/, '').trim();
-    return Object.prototype.hasOwnProperty.call(TICKERS, route) ? route : 'inicio';
-  };
-
-  const currentRoute = () => normalizeRoute(location.hash);
 
   function track(name, data = {}) {
-    const safeData = Object.fromEntries(
-      Object.entries(data)
-        .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
-        .slice(0, 4)
-    );
-
-    try {
-      if (typeof window.va === 'function') window.va('event', { name, data: safeData });
-    } catch {
-      // Analytics must never interrupt the ordering experience.
-    }
-
-    try {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event: name, ...safeData });
-    } catch {
-      // Optional compatibility layer for a future GA4 installation.
-    }
+    const safe = Object.fromEntries(Object.entries(data).filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value)).slice(0, 5));
+    try { if (typeof window.va === 'function') window.va('event', { name, data: safe }); } catch {}
+    try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: name, ...safe }); } catch {}
   }
-
   window.antojoTrack = track;
 
-  function tickerItem(text) {
+  function item(text) {
     return `<span class="announcement-item"><i aria-hidden="true"></i><strong>${text}</strong></span>`;
   }
 
-  function startLoop(trackNode, groupNode, pixelsPerSecond = 72) {
+  function startLoop(trackNode, groupNode, speed = 76) {
     if (!trackNode || !groupNode) return;
     trackNode._loopAnimation?.cancel();
-
     const shift = Math.ceil(groupNode.scrollWidth);
     if (!shift) return;
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const duration = Math.max(reducedMotion ? 55000 : 17000, (shift / pixelsPerSecond) * 1000);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = Math.max(reduced ? 60000 : 18000, (shift / speed) * 1000);
     trackNode._loopAnimation = trackNode.animate(
       [{ transform: 'translate3d(0,0,0)' }, { transform: `translate3d(-${shift}px,0,0)` }],
       { duration, iterations: Infinity, easing: 'linear' }
     );
   }
 
-  function buildLoop(trackNode, baseHtml, groupClass, pixelsPerSecond) {
+  function buildLoop(trackNode, html, className, speed) {
     if (!trackNode) return;
     trackNode._loopAnimation?.cancel();
     trackNode.replaceChildren();
-
     const group = document.createElement('div');
-    group.className = groupClass;
-    group.innerHTML = baseHtml;
+    group.className = className;
+    group.innerHTML = html;
     trackNode.appendChild(group);
-
-    const targetWidth = Math.max(window.innerWidth * 1.35, 1400);
-    const firstWidth = Math.max(1, group.scrollWidth);
-    const repeats = Math.max(1, Math.ceil(targetWidth / firstWidth));
-    if (repeats > 1) group.innerHTML = baseHtml.repeat(repeats);
-
+    const target = Math.max(window.innerWidth * 1.35, 1400);
+    const width = Math.max(1, group.scrollWidth);
+    const repeats = Math.max(1, Math.ceil(target / width));
+    if (repeats > 1) group.innerHTML = html.repeat(repeats);
     const clone = group.cloneNode(true);
     clone.setAttribute('aria-hidden', 'true');
     trackNode.appendChild(clone);
-    requestAnimationFrame(() => startLoop(trackNode, group, pixelsPerSecond));
+    requestAnimationFrame(() => startLoop(trackNode, group, speed));
   }
 
-  function renderTicker(route = currentRoute()) {
-    const trackNode = document.querySelector('#announcementTrack');
-    const liveNode = document.querySelector('#announcementLive');
-    if (!trackNode) return;
-    const messages = TICKERS[route] || TICKERS.inicio;
-    buildLoop(trackNode, messages.map(tickerItem).join(''), 'announcement-group', 78);
-    if (liveNode) liveNode.textContent = messages.join('. ');
+  function renderTicker(current = route()) {
+    const messages = TICKERS[current] || TICKERS.inicio;
+    buildLoop(document.querySelector('#announcementTrack'), messages.map(item).join(''), 'announcement-group', 78);
+    const live = document.querySelector('#announcementLive');
+    if (live) live.textContent = messages.join('. ');
   }
 
   function socialCard([image, caption]) {
     return `<a class="social-post" href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener" data-instagram-post>
       <span class="social-post__visual"><img src="${image}" alt="${caption}" loading="lazy" decoding="async"><i>Ver en Instagram ↗</i></span>
-      <strong>${caption}</strong>
-      <small>@antojo.bebidas</small>
+      <strong>${caption}</strong><small>@antojo.bebidas</small>
     </a>`;
   }
 
-  function renderSocialLoop() {
-    const trackNode = document.querySelector('#socialTrack');
-    if (!trackNode) return;
-    buildLoop(trackNode, SOCIAL_POSTS.map(socialCard).join(''), 'social-group', 38);
+  function renderSocial() {
+    buildLoop(document.querySelector('#socialTrack'), SOCIAL_POSTS.map(socialCard).join(''), 'social-group', 38);
   }
 
-  function stopSocialLoop() {
-    const trackNode = document.querySelector('#socialTrack');
-    trackNode?._loopAnimation?.pause();
-  }
-
-  function patchHomeProof() {
-    const badge = document.querySelector('.home-proof span:last-child');
-    if (!badge) return;
-    badge.classList.add('home-proof__delivery');
-    badge.innerHTML = '<b>Viernes a domingo</b><span>Entregas en CDMX</span>';
-  }
-
-  function patchPackageCard() {
-    const card = document.querySelector('[data-package="500"]');
-    if (!card) return;
-    const eyebrow = card.querySelector('span');
-    const title = card.querySelector('strong');
-    if (eyebrow) eyebrow.textContent = '+500';
-    if (title) title.textContent = '500 o más bebidas';
-  }
-
-  function ensureFavoriteLabel(row, shouldBeFavorite) {
-    const labels = row.querySelector('.product-row__labels');
-    if (!labels) return;
-    const favoriteLabels = [...labels.querySelectorAll('i')].filter(label => label.textContent.trim().toLowerCase() === 'favorito');
-
-    if (shouldBeFavorite && !favoriteLabels.length) {
-      const label = document.createElement('i');
-      label.textContent = 'Favorito';
-      labels.prepend(label);
-    }
-
-    if (!shouldBeFavorite) favoriteLabels.forEach(label => label.remove());
-    if (favoriteLabels.length > 1) favoriteLabels.slice(1).forEach(label => label.remove());
-  }
-
-  function patchFavoriteRows() {
-    const rows = [...document.querySelectorAll('#productList .product-row')];
-    let visibleIndex = 0;
-
-    rows.forEach(row => {
-      const name = row.querySelector('h3')?.textContent.trim() || '';
-      const isPreferred = PREFERRED_FAVORITES.has(name);
-      ensureFavoriteLabel(row, isPreferred);
-      row.hidden = favoriteMode && !isPreferred;
-
-      const number = row.querySelector('.product-row__number');
-      if (!row.hidden && number) {
-        visibleIndex += 1;
-        number.textContent = String(visibleIndex).padStart(2, '0');
-      }
-    });
-
-    const favoriteButton = document.querySelector('[data-filter="favorites"]');
-    if (favoriteMode) {
-      document.querySelectorAll('#filters [data-filter]').forEach(button => button.classList.toggle('is-active', button === favoriteButton));
-    }
-  }
-
-  function patchMenuUi() {
-    patchPackageCard();
-    patchFavoriteRows();
-  }
-
-  function queueMenuPatch() {
-    if (patchQueued) return;
-    patchQueued = true;
-    requestAnimationFrame(() => {
-      patchQueued = false;
-      patchMenuUi();
-    });
-  }
-
-  function bindFavoriteFilter() {
-    document.addEventListener('click', event => {
-      const filter = event.target.closest?.('[data-filter]');
-      if (!filter || switchingToAll) return;
-
-      if (filter.dataset.filter === 'favorites') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        favoriteMode = true;
-        switchingToAll = true;
-        document.querySelector('[data-filter="all"]')?.click();
-        switchingToAll = false;
-        queueMenuPatch();
-        track('filter_menu', { filter: 'favorites' });
-        return;
-      }
-
-      favoriteMode = false;
-      queueMenuPatch();
-    }, true);
-
-    const observer = new MutationObserver(queueMenuPatch);
-    const productList = document.querySelector('#productList');
-    const packageOptions = document.querySelector('#packageOptions');
-    if (productList) observer.observe(productList, { childList: true, subtree: true });
-    if (packageOptions) observer.observe(packageOptions, { childList: true, subtree: true });
-  }
-
-  function syncRoute(route = currentRoute()) {
-    renderTicker(route);
-    if (route === 'dinamicas') renderSocialLoop();
-    else stopSocialLoop();
-    track('view_section', { section: route });
-  }
-
-  function bindLoopHover() {
-    document.addEventListener('mouseenter', event => {
-      const trackNode = event.target.closest?.('.announcement-track,.social-track');
-      trackNode?._loopAnimation?.pause();
-    }, true);
-    document.addEventListener('mouseleave', event => {
-      const trackNode = event.target.closest?.('.announcement-track,.social-track');
-      if (trackNode?._loopAnimation && !document.hidden) trackNode._loopAnimation.play();
-    }, true);
-  }
-
-  function bindVisibilityPerformance() {
-    document.addEventListener('visibilitychange', () => {
-      document.querySelectorAll('.announcement-track,.social-track').forEach(trackNode => {
-        if (!trackNode._loopAnimation) return;
-        if (document.hidden) trackNode._loopAnimation.pause();
-        else if (trackNode.matches('.announcement-track') || currentRoute() === 'dinamicas') trackNode._loopAnimation.play();
-      });
-    });
+  function sync(current = route()) {
+    renderTicker(current);
+    if (current === 'dinamicas') renderSocial();
+    else document.querySelector('#socialTrack')?._loopAnimation?.pause();
+    track('view_section', { section: current });
   }
 
   function bindAnalytics() {
     document.addEventListener('click', event => {
-      const origin = currentRoute();
       const routeTarget = event.target.closest('[data-route]');
-      if (routeTarget) {
-        const destination = normalizeRoute(routeTarget.dataset.route);
-        track(ROUTE_EVENTS[destination] || 'navigate', { from: origin, to: destination });
-        setTimeout(() => syncRoute(destination), 0);
-        return;
-      }
-      if (event.target.closest('[data-faq-open]')) return track('open_faq', { section: origin });
-      if (event.target.closest('[data-google-review]')) return track('open_google_review', { section: origin });
-      if (event.target.closest('[data-instagram-post]')) return track('open_instagram_post', { section: origin });
-      const whatsapp = event.target.closest('[data-whatsapp]');
-      if (whatsapp) return track('click_whatsapp', { section: origin });
-      const filter = event.target.closest('[data-filter]');
-      if (filter) return track('filter_menu', { filter: filter.dataset.filter || 'all' });
+      if (routeTarget) return track('navigate', { from: route(), to: routeTarget.dataset.route || '' });
       const packageButton = event.target.closest('[data-package]');
       if (packageButton) return track('select_package', { quantity: Number(packageButton.dataset.package) || 0 });
+      const purpose = event.target.closest('[data-order-purpose]');
+      if (purpose) return track('select_order_purpose', { purpose: purpose.dataset.orderPurpose || '' });
       const fulfillment = event.target.closest('[data-fulfillment]');
-      if (fulfillment) return track('select_fulfillment', { method: fulfillment.dataset.fulfillment || 'pickup' });
+      if (fulfillment) return track('select_fulfillment', { method: fulfillment.dataset.fulfillment || '' });
       const quantity = event.target.closest('[data-qty-id]');
-      if (quantity) {
-        const adding = Number(quantity.dataset.delta) > 0;
-        return track(adding ? 'add_product' : 'remove_product', { product: quantity.dataset.qtyId || 'unknown', section: origin });
-      }
-      if (event.target.closest('[data-selection-toggle]')) return track('open_order_summary', { section: origin });
-      if (event.target.closest('[data-send-selection]')) return track('send_order_whatsapp', { section: origin });
-      if (event.target.closest('[data-clear-selection]')) return track('clear_order', { section: origin });
-      const eventNext = event.target.closest('#eventNext');
-      if (eventNext) {
-        const completes = eventNext.textContent.toLowerCase().includes('whatsapp');
-        track(completes ? 'complete_event_quote' : 'continue_event_quote', { section: origin });
-      }
-    }, { passive: true });
-
-    document.addEventListener('change', event => {
-      if (event.target.matches('#orderPersonalized')) track('toggle_personalization', { enabled: event.target.checked });
-      if (event.target.matches('[data-qty-input]')) track('type_product_quantity', { product: event.target.dataset.qtyInput || 'unknown', quantity: Number(event.target.value) || 0 });
-    }, { passive: true });
-
-    window.addEventListener('antojo:shipping', event => {
-      track('calculate_shipping', { fee: Number(event.detail?.fee) || 0 });
-    });
-  }
-
-  function refreshLoops() {
-    renderTicker();
-    if (currentRoute() === 'dinamicas') renderSocialLoop();
+      if (quantity) return track(Number(quantity.dataset.delta) > 0 ? 'add_product' : 'remove_product', { product: quantity.dataset.qtyId || '' });
+      if (event.target.closest('[data-selection-toggle]')) return track('open_order_summary', { section: route() });
+      if (event.target.closest('[data-send-selection]')) return track('send_order_whatsapp', { section: route() });
+      if (event.target.closest('#eventQuoteDirect')) return track('send_event_quote_whatsapp', {});
+      if (event.target.closest('#eventNext')) return track('advance_event_flow', {});
+      if (event.target.closest('[data-faq-open]')) return track('open_faq', { section: route() });
+      if (event.target.closest('[data-whatsapp]')) return track('click_whatsapp', { section: route() });
+    }, true);
   }
 
   function start() {
-    patchHomeProof();
-    bindFavoriteFilter();
-    queueMenuPatch();
-    refreshLoops();
-    bindLoopHover();
-    bindVisibilityPerformance();
+    renderTicker();
     bindAnalytics();
-    track('view_section', { section: currentRoute() });
-    window.addEventListener('hashchange', () => syncRoute());
-    window.addEventListener('popstate', () => syncRoute());
-    window.addEventListener('resize', () => {
-      clearTimeout(start.resizeTimer);
-      start.resizeTimer = setTimeout(refreshLoops, 240);
-    }, { passive: true });
-    if (document.fonts?.ready) document.fonts.ready.then(refreshLoops);
+    window.addEventListener('antojo:route', event => sync(event.detail?.route || route()));
+    window.addEventListener('hashchange', () => sync());
+    window.addEventListener('resize', () => renderTicker());
+    document.addEventListener('visibilitychange', () => {
+      document.querySelectorAll('.announcement-track,.social-track').forEach(node => {
+        if (!node._loopAnimation) return;
+        if (document.hidden) node._loopAnimation.pause();
+        else node._loopAnimation.play();
+      });
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
