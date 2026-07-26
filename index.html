@@ -12,24 +12,17 @@
   <meta property="og:description" content="Explora el menú, arma tu pedido o cotiza bebidas para tu evento.">
   <title>ANTOJO. — Bebidas frías en lata</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/app.css?v=20260722-6">
-  <link rel="stylesheet" href="/home-upgrades.css?v=20260722-6">
-  <link rel="stylesheet" href="/commerce-upgrades.css?v=20260722-6">
+  <link rel="stylesheet" href="/app.css?v=20260725-17">
+  <link rel="stylesheet" href="/home-upgrades.css?v=20260725-17">
+  <link rel="stylesheet" href="/commerce-upgrades.css?v=20260725-17">
+  <link rel="stylesheet" href="/v16-mobile.css?v=20260725-17">
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    window.va('beforeSend', event => {
-      try {
-        const url = new URL(event.url);
-        url.search = '';
-        return { ...event, url: url.toString() };
-      } catch {
-        return event;
-      }
-    });
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
-  <script defer src="/app.js?v=20260722-6"></script>
-  <script defer src="/experience-upgrades.js?v=20260722-6"></script>
+  <script defer src="/pricing.js?v=20260725-17"></script>
+  <script defer src="/app.js?v=20260725-17"></script>
+  <script defer src="/experience-upgrades.js?v=20260725-17"></script>
 </head>
 <body>
   <div class="loader" id="loader" aria-hidden="true">
@@ -72,17 +65,16 @@
             <p class="home-lead">Elige una ruta y llega directo a lo que necesitas. Sin menús eternos ni formularios confusos.</p>
             <div class="bio-links" aria-label="Acciones principales">
               <a class="bio-link bio-link--primary" href="#" data-whatsapp="Hola, quiero pedir bebidas de ANTOJO.">
-                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7.5 6.5h17a3 3 0 0 1 3 3v10.5a3 3 0 0 1-3 3H15l-6.5 4v-4h-1a3 3 0 0 1-3-3V9.5a3 3 0 0 1 3-3Z"></path><path d="M11.2 11.6c.5 4.1 3.2 6.9 7.3 7.7l1.7-2.1-3.1-1.7-1.2 1.2a7.6 7.6 0 0 1-3.2-3.2l1.1-1.2-1.6-3-2.1 1.5 1.1.8Z"></path></svg></span>
+                <span class="bio-link__icon bio-link__icon--system" aria-hidden="true">↗</span>
                 <span><small>Habla con nosotros</small><strong>WhatsApp</strong></span><b>01</b>
               </a>
-              <button class="bio-link" type="button" data-route="menu"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 4.5h10a3 3 0 0 1 3 3v17a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3v-17a3 3 0 0 1 3-3Z"></path><path d="M9 8h14M9 24h14"></path><circle class="icon-fill" cx="16" cy="12" r="1.4"></circle><circle class="icon-fill icon-soft" cx="16" cy="16" r="1.4"></circle><circle class="icon-fill" cx="16" cy="20" r="1.4"></circle></svg></span><span><small>Conoce los sabores</small><strong>Ver menú</strong></span><b>02</b></button>
-              <button class="bio-link" type="button" data-route="evento"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M10.5 7h8a2.5 2.5 0 0 1 2.5 2.5v15a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 8 24.5v-15A2.5 2.5 0 0 1 10.5 7Z"></path><path d="M9 10h11M9 23.5h11M25 8v5M22.5 10.5h5M24.8 18.3l.8 1.7 1.9.4-1.4 1.3.2 1.9-1.5-.9-1.7.8.4-1.9-1.3-1.4 1.9-.2.7-1.7Z"></path></svg></span><span><small>Bodas, cumpleaños y marcas</small><strong>Cotiza un evento</strong></span><b>03</b></button>
-              <button class="bio-link" type="button" data-route="dinamicas"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6.5 10.5h5l1.8-2.5h6.4l1.8 2.5h4A2.5 2.5 0 0 1 28 13v10.5a2.5 2.5 0 0 1-2.5 2.5h-19A2.5 2.5 0 0 1 4 23.5V13a2.5 2.5 0 0 1 2.5-2.5Z"></path><circle cx="16" cy="18" r="5"></circle><path d="m25 5 .6 1.6L27.2 7l-1.6.6L25 9.2l-.6-1.6L22.8 7l1.6-.4L25 5Z"></path></svg></span><span><small>Reseñas, regalos y contenido</small><strong>Dinámicas ANTOJO.</strong></span><b>04</b></button>
-              <button class="bio-link" type="button" data-route="recompensas"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7.5h20a2.5 2.5 0 0 1 2.5 2.5v12A2.5 2.5 0 0 1 26 24.5H6A2.5 2.5 0 0 1 3.5 22V10A2.5 2.5 0 0 1 6 7.5Z"></path><circle cx="9" cy="16" r="2"></circle><circle cx="14" cy="16" r="2"></circle><circle cx="19" cy="16" r="2"></circle><circle cx="24" cy="16" r="2"></circle><path d="M22.6 21.2 24 22l1.4-.8-.4-1.6 1.2-1.1-1.6-.2-.6-1.5-.6 1.5-1.6.2 1.2 1.1-.4 1.6Z"></path></svg></span><span><small>Vuelve y desbloquea beneficios</small><strong>Recompensas</strong></span><b>05</b></button>
+              <button class="bio-link" type="button" data-route="menu"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true">▤</span><span><small>Conoce los sabores</small><strong>Ver menú</strong></span><b>02</b></button>
+              <button class="bio-link" type="button" data-route="evento"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true">＋</span><span><small>Bodas, cumpleaños y marcas</small><strong>Cotiza un evento</strong></span><b>03</b></button>
+              <button class="bio-link" type="button" data-route="dinamicas"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true">◎</span><span><small>Reseñas, regalos y contenido</small><strong>Dinámicas ANTOJO.</strong></span><b>04</b></button>
+              <button class="bio-link" type="button" data-route="recompensas"><span class="bio-link__icon bio-link__icon--system" aria-hidden="true">▦</span><span><small>Vuelve y desbloquea beneficios</small><strong>Recompensas</strong></span><b>05</b></button>
             </div>
             <div class="home-proof" aria-label="Datos principales"><span><b>18</b> sabores</span><span><b>$65</b> individual</span><span><b>330 ml</b> por lata</span><span><b>Vie/dom</b> entregas</span></div>
           </section>
-
           <aside class="home-art" aria-hidden="true">
             <div class="home-art__copy">Porque cuando<br>se antoja,<br><strong>se antoja.</strong></div>
             <div class="home-art__halo"></div>
@@ -96,14 +88,14 @@
       <section class="view" data-view="menu" aria-labelledby="menu-title">
         <div class="page-shell menu-page">
           <div class="page-nav"><button type="button" data-route="inicio"><span>←</span> Inicio</button><span>02 / Menú</span></div>
-          <div class="page-header page-header--compact"><p class="eyebrow"><span></span>Menú ANTOJO.</p><h2 id="menu-title">Arma el pedido a tu manera.</h2><p>Elige un paquete, combina sabores, escribe cantidades y calcula personalización y entrega.</p></div>
+          <div class="page-header page-header--compact"><p class="eyebrow"><span></span>Menú ANTOJO.</p><h2 id="menu-title">Arma el pedido a tu manera.</h2><p>Elige bebidas y después completa para qué es el pedido, personalización y entrega en un solo resumen.</p></div>
           <section class="package-picker" aria-labelledby="package-title"><div><span>PAQUETES SUGERIDOS</span><h3 id="package-title">Empieza con una cantidad.</h3><p>Cargamos una mezcla popular y después puedes editarla.</p></div><div class="package-options" id="packageOptions"></div></section>
           <div class="menu-layout">
             <section class="menu-catalog" aria-label="Catálogo de bebidas">
               <div class="menu-tools"><div class="filters" id="filters" role="group" aria-label="Filtrar menú"></div><label class="search-field"><span>Buscar</span><input id="menuSearch" type="search" placeholder="Mojito, café, sin alcohol…" autocomplete="off"></label></div>
               <div class="product-list" id="productList"></div>
             </section>
-            <aside class="order-panel" id="orderPanel" aria-label="Tu selección" aria-live="polite"><div class="order-panel__head"><div><small>TU PEDIDO</small><h3>Tu selección.</h3></div><button type="button" class="order-panel__close" id="selectionClose" aria-label="Cerrar selección">×</button></div><div class="order-panel__content" id="selectionSummary"></div></aside>
+            <aside class="order-panel" id="orderPanel" aria-label="Revisar pedido" aria-live="polite"><div class="order-panel__head"><div><small>REVISA TODO</small><h3>Tu pedido.</h3></div><button type="button" class="order-panel__close" id="selectionClose" aria-label="Cerrar pedido">×</button></div><div class="order-panel__content" id="selectionSummary"></div></aside>
           </div>
           <div class="selection-bar" id="selectionBar" aria-live="polite"></div><div class="selection-backdrop" id="selectionBackdrop"></div>
         </div>
@@ -112,11 +104,11 @@
       <section class="view" data-view="evento" aria-labelledby="event-title">
         <div class="page-shell event-page">
           <div class="page-nav"><button type="button" data-route="inicio"><span>←</span> Inicio</button><span>03 / Evento</span></div>
-          <div class="page-header page-header--compact"><p class="eyebrow"><span></span>Cotización guiada</p><h2 id="event-title">Aterricemos tu evento.</h2><p>En escritorio ves todo de una vez. En móvil avanzas en pasos cortos sin perder contexto.</p></div>
+          <div class="page-header page-header--compact"><p class="eyebrow"><span></span>Cotización guiada</p><h2 id="event-title">Aterricemos tu evento.</h2><p>Primero definimos el evento y la cantidad. Después puedes elegir sabores o mandar una cotización general.</p></div>
           <div class="onboarding-card"><div class="progress-head"><span id="eventStepLabel">Paso 1 de 3</span><div class="progress-track"><i id="eventProgress"></i></div></div><form id="eventForm" novalidate>
             <section class="form-step is-active" data-step="1"><h3>¿Qué estás planeando?</h3><p>Elige la opción más cercana.</p><div class="choice-grid" data-choice-group="eventType"><button type="button" data-value="Boda"><b>Boda</b><span>Bienvenida o brindis.</span></button><button type="button" data-value="Cumpleaños"><b>Cumpleaños</b><span>Fácil de repartir.</span></button><button type="button" data-value="Evento corporativo"><b>Corporativo</b><span>Oficinas y activaciones.</span></button><button type="button" data-value="Reunión privada"><b>Reunión</b><span>Comida o sobremesa.</span></button><button type="button" data-value="Otro"><b>Otro</b><span>Lo aterrizamos contigo.</span></button></div></section>
-            <section class="form-step" data-step="2"><h3>¿Cuántas bebidas?</h3><p>Calculamos una cantidad sugerida.</p><div class="field-grid field-grid--two"><label class="field"><span>Personas</span><input id="guestCount" type="number" min="1" max="2000" value="50" inputmode="numeric"></label><label class="field"><span>Bebidas por persona</span><select id="servings"><option value="1">1 por persona</option><option value="1.5" selected>1.5 por persona</option><option value="2">2 por persona</option></select></label></div><div class="quantity-result"><small>Cantidad sugerida</small><strong id="suggestedQuantity">75 latas</strong><p>Puedes ajustarla antes de confirmar.</p></div><label class="toggle-row"><input id="personalized" type="checkbox"><span><b>Quiero latas personalizadas</b><small>Desde 50 piezas · +$10 por lata.</small></span></label></section>
-            <section class="form-step" data-step="3"><h3>Datos para continuar.</h3><p>Solo lo necesario para cotizar.</p><div class="field-grid field-grid--two"><label class="field"><span>Nombre</span><input id="contactName" type="text" maxlength="100" autocomplete="name" placeholder="Tu nombre"></label><label class="field"><span>Fecha</span><input id="eventDate" type="date"></label></div><label class="field"><span>Lugar o zona</span><input id="eventPlace" type="text" maxlength="180" placeholder="Ej. Roma Norte, CDMX"></label><label class="field"><span>Algo importante</span><textarea id="eventNotes" maxlength="800" placeholder="Sabores, horario o personalización…"></textarea></label><div class="event-summary" id="eventSummary"></div></section>
+            <section class="form-step" data-step="2"><h3>¿Cuántas bebidas?</h3><p>Calculamos una cantidad sugerida.</p><div class="field-grid field-grid--two"><label class="field"><span>Personas</span><input id="guestCount" type="number" min="1" max="2000" value="50" inputmode="numeric"></label><label class="field"><span>Bebidas por persona</span><select id="servings"><option value="1">1 por persona</option><option value="1.5" selected>1.5 por persona</option><option value="2">2 por persona</option></select></label></div><div class="quantity-result"><small>Cantidad sugerida</small><strong id="suggestedQuantity">75 latas</strong><p>Puedes ajustar personas o consumo antes de continuar.</p></div><label class="toggle-row"><input id="personalized" type="checkbox"><span><b>Quiero latas personalizadas</b><small>Disponible desde 50 piezas. Costo por cotizar.</small></span></label></section>
+            <section class="form-step" data-step="3"><h3>Datos para continuar.</h3><p>Solo lo necesario para preparar la cotización.</p><div class="field-grid field-grid--two"><label class="field"><span>Nombre</span><input id="contactName" type="text" maxlength="100" autocomplete="name" placeholder="Tu nombre"></label><label class="field"><span>Fecha</span><input id="eventDate" type="date"></label></div><label class="field"><span>Lugar o zona</span><input id="eventPlace" type="text" maxlength="180" placeholder="Ej. Roma Norte, CDMX"></label><label class="field"><span>Algo importante</span><textarea id="eventNotes" maxlength="800" placeholder="Horario, barra, catering o personalización…"></textarea></label><div class="event-summary" id="eventSummary"></div></section>
             <div class="form-actions"><button class="button button--secondary" id="eventBack" type="button">Volver</button><button class="button button--primary" id="eventNext" type="button">Continuar</button></div><p class="form-error" id="eventError" role="alert"></p>
           </form></div>
         </div>
@@ -130,13 +122,9 @@
           <div class="dynamics-grid">
             <article class="dynamic-card dynamic-card--yellow"><span>01 · RESEÑA EN GOOGLE</span><h3>Tu experiencia vale una bebida.</h3><p>Déjanos una reseña honesta en Google, comparte una foto y envíanos la evidencia. Tras validarla, desbloqueas una bebida en tu siguiente pedido.</p><small>Una participación por persona. Sujeto a validación y disponibilidad.</small><a href="https://www.google.com/maps/search/?api=1&query=ANTOJO%20bebidas%20CDMX" target="_blank" rel="noopener" data-google-review>Escribir reseña en Google →</a></article>
             <article class="dynamic-card dynamic-card--pink"><span>02 · GIVEAWAY</span><h3>20 latas. 10 packs dobles.</h3><p>Participa por uno de diez packs dobles. Sigue la cuenta, comparte la publicación y etiqueta a la persona con quien lo disfrutarías.</p><small>Consulta vigencia y bases completas antes de participar.</small><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Ver giveaway en Instagram →</a></article>
-            <article class="dynamic-card dynamic-card--red"><span>03 · COMUNIDAD</span><h3>Tu momento puede aparecer en el feed.</h3><p>Sube tu foto o video con ANTOJO., etiqueta a @antojo.bebidas y cuéntanos qué sabor elegiste. Compartimos nuestros favoritos y cada mes una publicación recibe un pack doble.</p><small>Solo compartimos contenido con autorización de la cuenta que lo publicó.</small><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Etiquetar a ANTOJO. →</a></article>
+            <article class="dynamic-card dynamic-card--red"><span>03 · COMUNIDAD</span><h3>Tu momento puede aparecer en el feed.</h3><p>Sube tu foto o video con ANTOJO., etiqueta a @antojo.bebidas y cuéntanos qué sabor elegiste.</p><small>Solo compartimos contenido con autorización.</small><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Etiquetar a ANTOJO. →</a></article>
           </div>
-
-          <section class="instagram-showcase" aria-labelledby="instagram-title">
-            <div class="instagram-showcase__head"><div><span>EN LA COMUNIDAD</span><h3 id="instagram-title">Lo que se está antojando.</h3></div><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Seguir en Instagram ↗</a></div>
-            <div class="social-window"><div class="social-track" id="socialTrack"></div></div>
-          </section>
+          <section class="instagram-showcase" aria-labelledby="instagram-title"><div class="instagram-showcase__head"><div><span>EN LA COMUNIDAD</span><h3 id="instagram-title">Lo que se está antojando.</h3></div><a href="https://www.instagram.com/antojo.bebidas/" target="_blank" rel="noopener">Seguir en Instagram ↗</a></div><div class="social-window"><div class="social-track" id="socialTrack"></div></div></section>
         </div>
       </section>
 
@@ -163,14 +151,14 @@
     <aside class="faq-dialog" id="faqDialog" role="dialog" aria-modal="true" aria-labelledby="faqTitle">
       <div class="faq-dialog__head"><div><small>ANTES DE PEDIR</small><h2 id="faqTitle">Preguntas frecuentes.</h2></div><button id="faqClose" type="button" data-faq-close aria-label="Cerrar preguntas frecuentes">×</button></div>
       <div class="faq-list">
-        <details open><summary>¿Qué alcohol utilizan en las bebidas?</summary><p>Todas nuestras bebidas preparadas con mezcal utilizan <strong>Los Muertos Mezcal</strong>, un mezcal 100% regulado y con los permisos necesarios para su consumo. La venta y entrega de bebidas con alcohol es únicamente para mayores de edad.</p></details>
-        <details><summary>¿Cómo funciona el precio por volumen?</summary><p>El precio base baja según la cantidad: pedidos personales desde $65, menos de 50 piezas hasta $60, 50 a 99 piezas en $60, 100 a 149 en $55, 150 a 199 en $53, 200 a 499 en $52 y 500 o más en $50 por bebida. Personalizar suma $10 por lata desde 50 piezas.</p></details>
+        <details open><summary>¿Qué alcohol utilizan?</summary><p>Las bebidas preparadas con mezcal utilizan Los Muertos Mezcal. La venta y entrega de bebidas con alcohol es únicamente para mayores de edad.</p></details>
+        <details><summary>¿Cómo funciona el precio por volumen?</summary><p>El precio se calcula por la cantidad total: 1 a 29 en $65, 30 a 59 en $60, 60 a 149 en $55, 150 a 199 en $54, 200 a 299 en $53, 300 a 499 en $52 y 500 o más en $50 por bebida.</p></details>
+        <details><summary>¿La personalización está incluida?</summary><p>No se cobra automáticamente. Está disponible desde 50 piezas y se cotiza según diseño, impresión, colocación y merma.</p></details>
         <details><summary>¿Cuándo hacen entregas?</summary><p>Las entregas regulares se realizan de viernes a domingo. Los pedidos especiales entre semana se coordinan según disponibilidad.</p></details>
         <details><summary>¿Puedo recoger mi pedido?</summary><p>Sí. Puedes elegir recolección en el punto acordado en la zona WTC, sin costo de envío.</p></details>
-        <details><summary>¿Cómo calculan el envío a domicilio?</summary><p>La página estima el envío usando el código postal, la distancia aproximada desde WTC y el volumen del pedido. La tarifa se confirma antes del cobro.</p></details>
-        <details><summary>¿Desde cuántas piezas personalizan las latas?</summary><p>La personalización está disponible desde 50 piezas y suma $10 por cada lata al precio correspondiente por volumen.</p></details>
-        <details><summary>¿Puedo combinar sabores?</summary><p>Sí. Puedes mezclar bebidas con alcohol, sin alcohol, café y opciones cremosas, sujeto a disponibilidad.</p></details>
-        <details><summary>¿Cómo debo conservar las bebidas?</summary><p>Mantén las latas refrigeradas y consúmelas dentro de la vigencia indicada al momento de la entrega. Pregunta por ingredientes o alérgenos antes de confirmar tu pedido.</p></details>
+        <details><summary>¿Cómo calculan la entrega?</summary><p>La página estima la entrega desde nuestro punto operativo mediante código postal, distancia aproximada y volumen. La tarifa se confirma antes del cobro.</p></details>
+        <details><summary>¿Puedo combinar sabores?</summary><p>Sí. El precio depende del total de bebidas, aunque muchos sabores o ingredientes especiales pueden requerir ajuste.</p></details>
+        <details><summary>¿Cómo debo conservarlas?</summary><p>Mantén las latas refrigeradas y consúmelas dentro de la vigencia indicada al momento de la entrega.</p></details>
       </div>
       <a class="button faq-whatsapp" href="#" data-whatsapp="Hola, tengo una pregunta sobre ANTOJO.">Preguntar por WhatsApp</a>
     </aside>
@@ -179,6 +167,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </div>
 
-  <noscript><p class="noscript">Necesitas activar JavaScript para usar el menú interactivo. Puedes escribirnos desde Instagram: @antojo.bebidas</p></noscript>
+  <noscript><p class="noscript">Necesitas activar JavaScript para usar el menú interactivo. Puedes escribirnos en Instagram: @antojo.bebidas</p></noscript>
 </body>
 </html>
