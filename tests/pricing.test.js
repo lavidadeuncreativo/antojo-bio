@@ -21,7 +21,7 @@ assert.equal(Pricing.unitPrice(0), 0);
 assert.equal(Pricing.personalizationAllowed(49), false);
 assert.equal(Pricing.personalizationAllowed(50), true);
 assert.equal(Pricing.personalizedUnitPrice(50, true), 70);
-assert.equal(Pricing.personalizedUnitPrice(49, true), 65);
+assert.equal(Pricing.personalizedUnitPrice(49, true), 60);
 
 const quote = Pricing.quote({ quantity: 150, personalized: true, shipping: 120 });
 assert.equal(quote.baseUnitPrice, 54);
