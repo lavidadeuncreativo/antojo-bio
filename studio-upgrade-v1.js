@@ -152,11 +152,11 @@
   function campaignPicture() {
     return `
       <picture class="novia-modal__picture">
-        <source media="(max-width: 559px)" srcset="/renders/antojo-dia-novia-close.webp">
-        <source media="(max-width: 959px)" srcset="/renders/antojo-dia-novia-angle.webp">
-        <img src="/renders/antojo-dia-novia-front.webp"
+        <source media="(max-width: 559px)" srcset="/renders/antojo-dia-novia-close.jpg">
+        <source media="(max-width: 959px)" srcset="/renders/antojo-dia-novia-angle.jpg">
+        <img src="/renders/antojo-dia-novia-front.jpg"
           alt="Caja de regalo ANTOJO. con una bebida verde, una flor de lirio y una dedicatoria."
-          width="1200" height="1600" decoding="async">
+          width="240" height="320" decoding="async">
       </picture>`;
   }
 
