@@ -154,6 +154,379 @@ html[data-mood="mariposa"] .site-header{
   min-height:0;
 }
 
+/* Día de la Novia campaign */
+.novia-announcement{
+  position:relative;
+  z-index:2;
+  flex:0 0 auto;
+  align-self:stretch;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:max-content;
+  padding:0 18px;
+  border:0;
+  border-right:1px solid color-mix(in srgb,var(--line) 82%,transparent);
+  background:var(--red);
+  color:#fff;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+
+.novia-announcement span,
+.novia-announcement b{
+  display:block;
+  line-height:1;
+}
+
+.novia-announcement span{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.novia-announcement b{
+  font-size:8px;
+  letter-spacing:.11em;
+  opacity:.78;
+}
+
+.novia-announcement:hover,
+.novia-announcement:focus-visible{
+  background:#b91f18;
+  outline:0;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.72);
+}
+
+.announcement-bar{
+  display:flex;
+  align-items:stretch;
+}
+
+.announcement-window{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.novia-home-card{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:13px;
+  margin:17px 0 16px;
+  padding:13px 14px;
+  border:1px solid color-mix(in srgb,var(--red) 28%,var(--line));
+  border-radius:16px;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--paper) 91%,#f8c4c0),color-mix(in srgb,var(--cream) 84%,#fff));
+  color:var(--ink);
+  text-align:left;
+  cursor:pointer;
+  box-shadow:0 14px 34px rgba(92,39,24,.08);
+}
+
+.novia-home-card__date{
+  display:grid;
+  place-items:center;
+  width:48px;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.04em;
+}
+
+.novia-home-card small,
+.novia-home-card strong{
+  display:block;
+}
+
+.novia-home-card small{
+  margin-bottom:3px;
+  color:var(--red);
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.14em;
+}
+
+.novia-home-card strong{
+  font-size:13px;
+  line-height:1.22;
+}
+
+.novia-home-card i{
+  color:var(--red);
+  font-size:10px;
+  font-style:normal;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.novia-home-card:hover{
+  transform:translateY(-1px);
+  border-color:var(--red);
+}
+
+.novia-home-card:focus-visible{
+  outline:0;
+  box-shadow:var(--studio-focus),0 14px 34px rgba(92,39,24,.08);
+}
+
+body.novia-modal-open{
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+.novia-modal[hidden]{
+  display:none!important;
+}
+
+.novia-modal{
+  position:fixed;
+  z-index:300;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease;
+}
+
+.novia-modal.is-open{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.novia-modal__backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(24,18,15,.62);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+
+.novia-modal__dialog{
+  position:relative;
+  width:min(940px,100%);
+  max-height:min(820px,calc(100dvh - 36px));
+  display:grid;
+  grid-template-columns:minmax(0,1.04fr) minmax(340px,.96fr);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.38);
+  border-radius:26px;
+  background:var(--paper);
+  color:var(--ink);
+  box-shadow:0 32px 100px rgba(29,18,11,.34);
+  transform:translateY(14px) scale(.985);
+  transition:transform .24s ease;
+}
+
+.novia-modal.is-open .novia-modal__dialog{
+  transform:none;
+}
+
+.novia-modal__close{
+  position:absolute;
+  z-index:4;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:50%;
+  background:rgba(20,14,11,.48);
+  color:#fff;
+  font-size:25px;
+  line-height:1;
+  cursor:pointer;
+  backdrop-filter:blur(9px);
+  -webkit-backdrop-filter:blur(9px);
+}
+
+.novia-modal__close:hover,
+.novia-modal__close:focus-visible{
+  outline:0;
+  background:var(--red);
+  box-shadow:0 0 0 4px rgba(255,255,255,.3);
+}
+
+.novia-modal__visual{
+  position:relative;
+  min-height:610px;
+  overflow:hidden;
+  background:#efe8de;
+}
+
+.novia-modal__picture,
+.novia-modal__picture img{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.novia-modal__picture img{
+  position:absolute;
+  inset:0;
+  object-fit:cover;
+  object-position:center 44%;
+}
+
+.novia-modal__visual::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0;
+  height:30%;
+  background:linear-gradient(to bottom,transparent,rgba(22,13,8,.28));
+  pointer-events:none;
+}
+
+.novia-modal__edition{
+  position:absolute;
+  z-index:2;
+  left:19px;
+  bottom:17px;
+  color:#fff;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.16em;
+}
+
+.novia-modal__content{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  padding:62px clamp(30px,4vw,54px) 42px;
+  overflow:auto;
+}
+
+.novia-modal__eyebrow{
+  margin:0 0 16px;
+  color:var(--red);
+  font-size:9px;
+  font-weight:950;
+  letter-spacing:.16em;
+}
+
+.novia-modal__content h2{
+  max-width:9ch;
+  margin:0;
+  font-size:clamp(42px,5vw,70px);
+  line-height:.88;
+  letter-spacing:-.065em;
+}
+
+.novia-modal__content>p:not(.novia-modal__eyebrow):not(.novia-modal__availability){
+  margin:22px 0 0;
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.58;
+}
+
+.novia-modal__meta{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:28px;
+  padding:18px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+
+.novia-modal__meta span{
+  min-width:0;
+}
+
+.novia-modal__meta span+span{
+  padding-left:14px;
+  border-left:1px solid var(--line);
+}
+
+.novia-modal__meta small,
+.novia-modal__meta strong{
+  display:block;
+}
+
+.novia-modal__meta small{
+  margin-bottom:6px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+
+.novia-modal__meta strong{
+  font-size:15px;
+  line-height:1.2;
+}
+
+.novia-modal__availability{
+  margin:16px 0 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.novia-modal__actions{
+  display:grid;
+  gap:9px;
+  margin-top:22px;
+}
+
+.novia-modal__primary,
+.novia-modal__secondary{
+  min-height:50px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:950;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.novia-modal__primary{
+  border:1px solid var(--red);
+  background:var(--red);
+  color:#fff;
+}
+
+.novia-modal__secondary{
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--ink);
+}
+
+.novia-modal__primary:hover,
+.novia-modal__primary:focus-visible{
+  outline:0;
+  background:#b91f18;
+  box-shadow:var(--studio-focus);
+}
+
+.novia-modal__secondary:hover,
+.novia-modal__secondary:focus-visible{
+  outline:0;
+  border-color:var(--red);
+  box-shadow:var(--studio-focus);
+}
+
+.novia-modal__fineprint{
+  display:block;
+  margin-top:13px;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.4;
+  text-align:center;
+}
+
 @media(min-width:981px){
   .order-panel{
     max-height:calc(100dvh - var(--header-h) - 28px);
@@ -173,6 +546,12 @@ html[data-mood="mariposa"] .site-header{
   .selection-actions{
     bottom:-10px;
     margin-bottom:-1px;
+  }
+  .novia-modal__dialog{
+    grid-template-columns:minmax(0,.9fr) minmax(330px,1.1fr);
+  }
+  .novia-modal__visual{
+    min-height:560px;
   }
 }
 
@@ -201,13 +580,100 @@ html[data-mood="mariposa"] .site-header{
     gap:7px;
     padding-top:14px;
   }
+  .novia-announcement{
+    width:88px;
+    padding:0 10px;
+    justify-content:center;
+    text-align:center;
+  }
+  .novia-announcement span{
+    font-size:8px;
+    line-height:1.08;
+  }
+  .novia-announcement b{
+    display:none;
+  }
+  .novia-home-card{
+    grid-template-columns:auto 1fr;
+  }
+  .novia-home-card i{
+    grid-column:2;
+    margin-top:-8px;
+  }
+  .novia-modal{
+    place-items:end center;
+    padding:0;
+  }
+  .novia-modal__backdrop{
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
+  }
+  .novia-modal__dialog{
+    width:100%;
+    max-height:min(92dvh,840px);
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(260px,42dvh) auto;
+    border-radius:24px 24px 0 0;
+    overflow:auto;
+    overscroll-behavior:contain;
+    transform:translateY(28px);
+  }
+  .novia-modal__visual{
+    min-height:0;
+  }
+  .novia-modal__content{
+    overflow:visible;
+    padding:28px 22px calc(24px + env(safe-area-inset-bottom));
+  }
+  .novia-modal__content h2{
+    max-width:10ch;
+    font-size:clamp(39px,12vw,58px);
+  }
+  .novia-modal__content>p:not(.novia-modal__eyebrow):not(.novia-modal__availability){
+    margin-top:16px;
+    font-size:14px;
+  }
+  .novia-modal__meta{
+    margin-top:21px;
+  }
 }
 
 @media(max-width:390px){
   .selection-items{max-height:19dvh}
   .selection-actions button{min-height:43px}
+  .novia-home-card{
+    margin-top:13px;
+    padding:11px;
+    gap:10px;
+  }
+  .novia-home-card__date{
+    width:43px;
+  }
+  .novia-home-card strong{
+    font-size:12px;
+  }
+  .novia-modal__dialog{
+    grid-template-rows:minmax(220px,35dvh) auto;
+  }
+  .novia-modal__content{
+    padding-inline:18px;
+  }
+  .novia-modal__content h2{
+    font-size:38px;
+  }
+  .novia-modal__meta{
+    gap:10px;
+  }
+  .novia-modal__meta strong{
+    font-size:13px;
+  }
 }
 
 @media(prefers-reduced-motion:reduce){
   html[data-mood="pulse"] body{animation:none}
+  .novia-home-card,
+  .novia-modal,
+  .novia-modal__dialog{
+    transition:none!important;
+  }
 }
