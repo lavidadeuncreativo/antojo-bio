@@ -26,7 +26,7 @@
   function patchCommunityAndInstagram() {
     replaceText(document.body, [
       [/¡Ya somos 15K en Instagram!/g, '¡Ya somos +16K en Instagram!'],
-      [/\b15K\+\b/g, '+16K'],
+      [/15K\+/g, '+16K'],
       [/@antojo\.bebidas/g, '@antojo.beb']
     ]);
 
