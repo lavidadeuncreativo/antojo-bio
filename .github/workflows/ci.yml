@@ -17,12 +17,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
       - name: Install
         run: npm install --ignore-scripts
-      - name: Test and build
-        run: npm test
+      - name: Syntax checks
+        run: npm run check
+      - name: Pricing tests
+        run: node tests/pricing.test.js
+      - name: Production build
+        run: npm run build
+      - name: Verify output
+        run: test -s dist/index.html && test -s dist/app.css && test -s dist/app.js && test -s dist/experience-upgrades.js && test -s dist/blog/index.html && test -s dist/blog/capitulo-1.html && test -d dist/renders
