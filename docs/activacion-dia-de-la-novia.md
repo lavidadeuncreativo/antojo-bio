@@ -10,7 +10,7 @@ Producto comunicado:
 - 1 flor.
 - 1 dedicatoria breve.
 - Primera tanda máxima: 100 piezas.
-- Precio publicado: desde $99 MXN.
+- Precio publicado: $219 MXN.
 - Envío por separado.
 
 ## Hook principal
@@ -72,7 +72,7 @@ No presentar la pieza como una situación completamente espontánea si hubo coor
 Este 1 de agosto preparamos una edición limitada de ANTOJO.: una bebida, una flor y una dedicatoria breve para regalar sin hacer demasiado ruido.
 
 Primera tanda de 100 piezas.  
-Desde $99 MXN. Envío por separado.
+$219 MXN. Envío por separado.
 
 Reserva por WhatsApp.
 
