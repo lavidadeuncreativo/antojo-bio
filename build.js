@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const root = __dirname;
 const dist = path.join(root, 'dist');
+const releaseVersion = '20260727-3';
 const files = [
   'index.html',
   'app.css',
@@ -46,4 +47,8 @@ fs.appendFileSync(
   'utf8'
 );
 
-console.log('✓ ANTOJO. build listo');
+const indexPath = path.join(dist, 'index.html');
+const index = fs.readFileSync(indexPath, 'utf8').replace(/\?v=\d{8}-\d+/g, `?v=${releaseVersion}`);
+fs.writeFileSync(indexPath, index, 'utf8');
+
+console.log(`✓ ANTOJO. build listo · ${releaseVersion}`);
