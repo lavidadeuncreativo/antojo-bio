@@ -64,13 +64,18 @@
   function selectedItems() {
     const values = quantityMap();
     const items = [];
-    $$('.product-row').forEach(row => {
+    const seen = new Set();
+    const rows = $$('.selection-item').length ? $$('.selection-item') : $$('.product-row');
+
+    rows.forEach(row => {
       const input = $('[data-qty-input]', row);
       const id = input?.dataset.qtyInput;
       const quantity = id ? values.get(id) || 0 : 0;
-      if (!quantity) return;
-      items.push({ name: $('h3', row)?.textContent.trim() || 'Bebida', quantity });
+      if (!id || !quantity || seen.has(id)) return;
+      seen.add(id);
+      items.push({ name: $('b', row)?.textContent.trim() || $('h3', row)?.textContent.trim() || 'Bebida', quantity });
     });
+
     return items;
   }
 
