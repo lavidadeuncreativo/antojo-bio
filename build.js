@@ -35,6 +35,7 @@ const experienceBundle = [
   readRequired('pricing-rules.js'),
   readRequired('experience-upgrades.js'),
   readRequired('mobile-shipping-audit-v2.js'),
+  readRequired('announcement-system-v2.js'),
   readRequired('site-system-v2.js')
 ].join('\n\n');
 
