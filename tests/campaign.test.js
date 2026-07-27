@@ -7,10 +7,13 @@ const script = fs.readFileSync(path.join(root, 'studio-upgrade-v1.js'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'studio-upgrade-v1.css'), 'utf8');
 
 [
-  '/renders/antojo-dia-novia-front.webp',
-  '/renders/antojo-dia-novia-angle.webp',
-  '/renders/antojo-dia-novia-close.webp'
-].forEach(asset => assert.ok(script.includes(asset), `Falta asset responsive: ${asset}`));
+  '/renders/antojo-dia-novia-front.jpg',
+  '/renders/antojo-dia-novia-angle.jpg',
+  '/renders/antojo-dia-novia-close.jpg'
+].forEach(asset => {
+  assert.ok(script.includes(asset), `Falta asset responsive: ${asset}`);
+  assert.ok(fs.existsSync(path.join(root, asset)), `No existe el archivo: ${asset}`);
+});
 
 assert.ok(script.includes('Desde $99 MXN'), 'El precio publicado debe ser desde $99 MXN.');
 assert.ok(script.includes('100 piezas'), 'La primera tanda debe comunicar 100 piezas.');
