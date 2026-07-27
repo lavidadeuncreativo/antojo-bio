@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const root = __dirname;
 const dist = path.join(root, 'dist');
-const releaseVersion = '20260727-3';
+const releaseVersion = '20260727-4';
 const files = [
   'index.html',
   'app.css',
@@ -36,15 +36,14 @@ const experienceBundle = [
   readRequired('pricing-rules.js'),
   readRequired('experience-upgrades.js'),
   readRequired('mobile-shipping-audit-v2.js'),
-  readRequired('announcement-system-v2.js'),
-  readRequired('release-migration-v2.js'),
-  readRequired('site-system-v2.js')
+  readRequired('design-system-v3.js'),
+  readRequired('campaign-dia-novia-v3.js')
 ].join('\n\n');
 
 fs.writeFileSync(path.join(dist, 'experience-upgrades.js'), `${experienceBundle}\n`, 'utf8');
 fs.appendFileSync(
   path.join(dist, 'app.css'),
-  `\n\n${readRequired('studio-upgrade-v1.css')}\n\n${readRequired('site-system-v2.css')}\n`,
+  `\n\n${readRequired('theme-system-v3.css')}\n\n${readRequired('layout-system-v3.css')}\n\n${readRequired('campaign-dia-novia-v3.css')}\n`,
   'utf8'
 );
 
