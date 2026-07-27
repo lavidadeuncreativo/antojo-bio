@@ -35,10 +35,14 @@ const experienceBundle = [
   readRequired('pricing-rules.js'),
   readRequired('experience-upgrades.js'),
   readRequired('mobile-shipping-audit-v2.js'),
-  readRequired('studio-upgrade-v1.js')
+  readRequired('site-system-v2.js')
 ].join('\n\n');
 
 fs.writeFileSync(path.join(dist, 'experience-upgrades.js'), `${experienceBundle}\n`, 'utf8');
-fs.appendFileSync(path.join(dist, 'app.css'), `\n\n${readRequired('studio-upgrade-v1.css')}\n`, 'utf8');
+fs.appendFileSync(
+  path.join(dist, 'app.css'),
+  `\n\n${readRequired('studio-upgrade-v1.css')}\n\n${readRequired('site-system-v2.css')}\n`,
+  'utf8'
+);
 
 console.log('✓ ANTOJO. build listo');
