@@ -3,7 +3,24 @@ const path = require('node:path');
 
 const root = __dirname;
 const dist = path.join(root, 'dist');
-const files = ['index.html', 'app.css', 'home-upgrades.css', 'commerce-upgrades.css', 'app.js', 'experience-upgrades.js', 'favicon.svg', 'sw.js', 'renders'];
+const files = [
+  'index.html',
+  'app.css',
+  'home-upgrades.css',
+  'commerce-upgrades.css',
+  'app.js',
+  'experience-upgrades.js',
+  'favicon.svg',
+  'sw.js',
+  'renders',
+  'blog'
+];
+
+function readRequired(file) {
+  const target = path.join(root, file);
+  if (!fs.existsSync(target)) throw new Error(`Falta ${file}`);
+  return fs.readFileSync(target, 'utf8');
+}
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
@@ -14,12 +31,14 @@ for (const file of files) {
   fs.cpSync(from, path.join(dist, file), { recursive: true });
 }
 
-const mobileAudit = path.join(root, 'mobile-shipping-audit-v2.js');
-if (!fs.existsSync(mobileAudit)) throw new Error('Falta mobile-shipping-audit-v2.js');
-fs.appendFileSync(
-  path.join(dist, 'experience-upgrades.js'),
-  `\n\n${fs.readFileSync(mobileAudit, 'utf8')}\n`,
-  'utf8'
-);
+const experienceBundle = [
+  readRequired('pricing-rules.js'),
+  readRequired('experience-upgrades.js'),
+  readRequired('mobile-shipping-audit-v2.js'),
+  readRequired('studio-upgrade-v1.js')
+].join('\n\n');
+
+fs.writeFileSync(path.join(dist, 'experience-upgrades.js'), `${experienceBundle}\n`, 'utf8');
+fs.appendFileSync(path.join(dist, 'app.css'), `\n\n${readRequired('studio-upgrade-v1.css')}\n`, 'utf8');
 
 console.log('✓ ANTOJO. build listo');
