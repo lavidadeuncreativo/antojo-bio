@@ -1,11 +1,11 @@
 {
   "name": "antojo-bio",
-  "version": "13.0.2",
+  "version": "13.1.0",
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "check": "node --check app.js && node --check experience-upgrades.js && node --check mobile-shipping-audit-v2.js && node --check announcement-system-v2.js && node --check release-migration-v2.js && node --check site-system-v2.js && node --check pricing-rules.js && node --check api/quote.js && node --check blog/blog.js && node --check build.js",
-    "test": "npm run check && node tests/pricing.test.js && node tests/campaign.test.js && node tests/site-system-v2.test.js && npm run build"
+    "check": "node --check app.js && node --check experience-upgrades.js && node --check mobile-shipping-audit-v2.js && node --check design-system-v3.js && node --check campaign-dia-novia-v3.js && node --check pricing-rules.js && node --check api/quote.js && node --check blog/blog.js && node --check build.js",
+    "test": "npm run check && node tests/pricing.test.js && node tests/campaign.test.js && node tests/site-system-v3.test.js && node tests/blog-v3.test.js && npm run build"
   },
   "engines": {
     "node": ">=20"
