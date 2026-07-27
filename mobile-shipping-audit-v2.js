@@ -1,80 +1,29 @@
 (() => {
   'use strict';
 
-  const SHIPPING = {
-    originPostalCode: '03103',
-    originFallback: { lat: 19.3898, lon: -99.1717 },
-    minimumDeliveryQuantity: 10,
-    whatsappNumber: '525522026291'
+  const Pricing = window.AntojoPricing;
+  if (!Pricing) return;
+
+  const WHATSAPP_NUMBER = '525522026291';
+  const deliveryQuote = {
+    status: 'idle',
+    postalCode: '',
+    quantity: 0,
+    personalized: false,
+    fee: 0,
+    distance: 0,
+    label: ''
   };
 
-  const quote = { status: 'idle', postalCode: '', quantity: 0, fee: 0, distance: 0, label: '' };
-  let patchQueued = false;
-  let calculateTimer = null;
   let requestSerial = 0;
-  let originPromise = null;
+  let quoteTimer = null;
+  let patchQueued = false;
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
-  }
-
-  function setHtml(node, value) {
-    if (node && node.innerHTML !== value) node.innerHTML = value;
-  }
-
-  function injectMobileStyles() {
-    if ($('#antojo-mobile-audit-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'antojo-mobile-audit-styles';
-    style.textContent = `
-      @media(max-width:720px){
-        :root{--header-h:58px}
-        body{padding-bottom:calc(70px + var(--safe-bottom))}
-        .site-header{height:var(--header-h);padding-inline:12px}
-        .header-actions{gap:7px}.header-instagram,.header-faq,.route-indicator{display:none!important}
-        .wordmark{font-size:21px}.header-menu{width:40px;height:40px;background:var(--paper)}
-        .drawer{top:calc(var(--chrome-h) + 6px);right:7px;width:calc(100vw - 14px);max-height:calc(100dvh - var(--chrome-h) - 16px);overflow:auto;border-radius:22px}
-
-        .home-layout{padding:15px 12px 84px;gap:18px}.home-intro h1{font-size:clamp(48px,14.4vw,66px);line-height:.82}
-        .eyebrow{margin-bottom:10px;font-size:8px;letter-spacing:.13em}.home-lead{margin:13px 0 15px;font-size:13px;line-height:1.35}
-        .bio-links{gap:6px}.bio-link{min-height:59px;grid-template-columns:39px minmax(0,1fr) 18px;gap:10px;padding:7px 10px;border-radius:17px}
-        .bio-link__icon{width:38px;height:38px}.bio-link span small{margin-bottom:2px;font-size:7.5px;line-height:1.15}.bio-link span strong{font-size:16px;line-height:1.02}.bio-link>b{padding-top:2px}
-        .home-proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.home-proof span{min-width:0;justify-content:center;padding:7px 4px;text-align:center;font-size:7.5px}.home-proof b{font-size:11px}
-        .home-proof__delivery{grid-column:1/-1;display:flex!important;min-height:40px;gap:7px!important;padding-inline:12px!important}.home-proof__delivery b{font-size:10px!important}.home-proof__delivery span{display:inline!important;padding:0!important;border:0!important;background:none!important;color:inherit!important;font-size:9px!important}
-        .home-art{height:300px;border-radius:24px}.home-art:after{inset:11px;border-radius:17px}.home-art__copy{top:8%;left:7%;font-size:clamp(31px,9.7vw,42px)}.hero-can{width:34%}.hero-can--top{right:6%;top:31%}.hero-can--bottom{left:24%;bottom:-1%}.home-art__stamp{right:5%;bottom:5%;padding:7px 9px;font-size:6px}
-
-        .page-shell{padding:13px 12px 80px}.page-nav{margin-bottom:17px;padding-bottom:9px}.page-nav button{font-size:10px}.page-nav button span{width:28px;height:28px}
-        .page-header{margin-bottom:20px}.page-header .eyebrow{margin-bottom:11px}.page-header h2{font-size:clamp(42px,12.8vw,58px);line-height:.86}.page-header>p:last-child{margin-top:11px;font-size:12.5px;line-height:1.4}
-
-        .package-picker{padding:14px;border-radius:19px;gap:12px;margin-bottom:14px}.package-picker h3{font-size:31px}.package-picker p{font-size:10.5px}
-        .package-options{scroll-snap-type:x mandatory;overscroll-behavior-inline:contain}.package-card{flex-basis:172px;min-height:124px;scroll-snap-align:start;padding:13px}.package-card strong{font-size:19px}.package-card small{font-size:8.5px}
-        .menu-tools{top:var(--chrome-h);margin-inline:-12px;padding:8px 12px 10px;background:rgba(255,247,223,.97);border-bottom:1px solid rgba(17,16,15,.08)}.filters{gap:6px}.filters button{padding:8px 10px;font-size:8.5px}
-        .product-row{grid-template-columns:1fr;gap:8px;padding:13px 0;min-height:0}.product-row__number{display:none}.product-row__main{grid-template-columns:68px minmax(0,1fr);gap:9px}.product-row__image{height:92px}.product-row__image img{width:61px;height:88px;filter:drop-shadow(0 8px 5px rgba(54,33,21,.1))}
-        .product-row h3{font-size:21px}.product-row__main p{font-size:9.5px;line-height:1.35}.product-row__facts{grid-column:1/-1;margin:0;gap:4px}.product-row__facts span{padding:5px 7px;font-size:7px}
-        .product-row__action{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:0}.product-row__price{max-width:128px;font-size:8px}.qty--editable{grid-template-columns:29px 44px 29px!important}.qty--editable input{height:29px}
-
-        .order-panel{left:6px;right:6px;bottom:calc(76px + var(--safe-bottom));max-height:calc(100dvh - var(--chrome-h) - 86px);border-radius:22px}.order-panel__head{padding:15px}.order-panel__head h3{font-size:28px}.order-panel__content{padding:12px}
-        .selection-bar{left:7px;right:7px;bottom:calc(76px + var(--safe-bottom));width:auto;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 10px 10px 13px;border-radius:16px;transform:translateY(150%)}.selection-bar.is-visible{transform:translateY(0)}
-        .selection-bar p{min-width:0;font-size:8.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selection-bar p b{font-size:12px}.selection-bar button{padding:9px 11px;font-size:9px}
-        body.has-mobile-selection .faq-floating{bottom:calc(148px + var(--safe-bottom))}
-        .mobile-nav{left:6px;right:6px;bottom:calc(6px + var(--safe-bottom));height:62px;padding:6px;border-radius:19px;backdrop-filter:none;-webkit-backdrop-filter:none}.mobile-nav button,.mobile-nav a{border-radius:13px;font-size:7px}.mobile-nav span{font-size:14px}
-
-        .event-page .onboarding-card{border-radius:20px}.event-page .progress-head{padding:13px 14px}.event-page #eventForm{padding:14px}.event-page .form-step{min-height:0}.event-page .form-step h3{font-size:28px}.event-page .form-step>p{margin:8px 0 11px;font-size:10px}
-        .event-page .choice-grid{grid-template-columns:1fr 1fr;gap:6px}.event-page .choice-grid button{min-height:67px;padding:9px;border-radius:13px}.event-page .choice-grid button:last-child{grid-column:1/-1}.event-page .choice-grid button b{font-size:11px}.event-page .choice-grid button span{margin-top:4px;font-size:7.5px;line-height:1.2}
-        .event-page .field-grid--two{grid-template-columns:1fr 1fr;gap:7px}.event-page .field{gap:5px;margin-bottom:8px}.event-page .field input,.event-page .field select{height:40px;border-radius:11px;padding-inline:9px}.event-page .field textarea{min-height:62px;padding:9px;border-radius:11px}
-        .event-page .quantity-result{margin:8px 0;padding:10px;border-radius:13px}.event-page .quantity-result strong{font-size:25px}.event-page .toggle-row{margin-top:8px;padding:9px;border-radius:13px}.event-page .event-summary{margin-top:7px;padding:9px;border-radius:12px}
-        .event-page .form-actions{bottom:calc(68px + var(--safe-bottom));margin:9px -14px -14px;padding:10px 14px;background:var(--paper);backdrop-filter:none;-webkit-backdrop-filter:none}.event-page .form-actions .button{min-height:40px;padding-inline:13px;font-size:10px}
-
-        .dynamic-card{padding:19px;border-radius:21px}.dynamic-card h3{margin-top:20px;font-size:38px}.instagram-showcase__head{padding-inline:12px}.social-post{width:184px;flex-basis:184px}.social-post__visual{height:222px}
-        .rewards-card--balanced{padding:21px 15px}.rewards-card--balanced .rewards-card__intro h3{font-size:45px}.rewards-card__visual .stamp-grid{gap:5px}
-        .faq-dialog{top:calc(var(--chrome-h) + 4px);right:4px;bottom:calc(70px + var(--safe-bottom));width:calc(100vw - 8px);border-radius:20px}.faq-dialog__head{padding:17px}.faq-dialog__head h2{font-size:42px}.faq-list{padding-inline:17px}.faq-list summary{padding-block:15px;font-size:12px}.faq-list p{font-size:10.5px}
-      }
-      @media(max-width:390px){.home-intro h1{font-size:47px}.home-art{height:270px}.bio-link span strong{font-size:15px}.event-page .field-grid--two{grid-template-columns:1fr}.selection-bar p{max-width:190px}}
-    `;
-    document.head.appendChild(style);
   }
 
   function toast(message) {
@@ -86,189 +35,148 @@
     toast.timer = setTimeout(() => node.classList.remove('is-visible'), 3400);
   }
 
-  function uniqueQuantities() {
+  function quantityMap() {
     const values = new Map();
     $$('[data-qty-input]').forEach(input => {
       const id = input.dataset.qtyInput;
-      const value = Math.max(0, Math.round(Number(input.value) || 0));
-      if (id) values.set(id, Math.max(values.get(id) || 0, value));
+      const quantity = Pricing.normalizeQuantity(input.value);
+      if (id) values.set(id, Math.max(values.get(id) || 0, quantity));
     });
     return values;
   }
 
-  const orderQuantity = () => [...uniqueQuantities().values()].reduce((sum, value) => sum + value, 0);
-
-  function standardUnitPrice(total) {
-    if (!total) return 0;
-    if (total <= 5) return 65;
-    if (total <= 19) return 63;
-    if (total <= 99) return 60;
-    if (total <= 149) return 55;
-    if (total <= 199) return 53;
-    if (total <= 499) return 52;
-    return 50;
+  function quantityTotal() {
+    return [...quantityMap().values()].reduce((sum, value) => sum + value, 0);
   }
 
-  const isPersonalized = () => Boolean($('#orderPersonalized')?.checked);
-  const isDelivery = () => Boolean($('[data-fulfillment="delivery"].is-active'));
-  const postalCode = () => String($('#orderPostalCode')?.value || '').replace(/\D/g, '').slice(0, 5);
-
-  function haversineKm(lat1, lon1, lat2, lon2) {
-    const toRad = value => value * Math.PI / 180;
-    const earth = 6371;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    return earth * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  function isPersonalized() {
+    return Boolean($('#orderPersonalized')?.checked);
   }
 
-  async function postalCoordinates(cp, fallback = null) {
-    try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3200);
-      const response = await fetch(`https://api.zippopotam.us/mx/${cp}`, { signal: controller.signal });
-      clearTimeout(timer);
-      if (!response.ok) throw new Error('CP no localizado');
-      const place = (await response.json())?.places?.[0];
-      const lat = Number(place?.latitude);
-      const lon = Number(place?.longitude);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) throw new Error('Coordenadas inválidas');
-      return { lat, lon };
-    } catch {
-      if (fallback) return fallback;
-      throw new Error('No se pudo localizar el código postal');
-    }
+  function isDelivery() {
+    return Boolean($('[data-fulfillment="delivery"].is-active'));
   }
 
-  function originCoordinates() {
-    if (!originPromise) originPromise = postalCoordinates(SHIPPING.originPostalCode, SHIPPING.originFallback);
-    return originPromise;
+  function postalCode() {
+    return String($('#orderPostalCode')?.value || '').replace(/\D/g, '').slice(0, 5);
   }
 
-  const roundToTen = value => Math.round(value / 10) * 10;
+  function selectedItems() {
+    const values = quantityMap();
+    const items = [];
+    const seen = new Set();
+    const rows = $$('.selection-item').length ? $$('.selection-item') : $$('.product-row');
 
-  function distanceBaseFee(distance) {
-    if (distance <= 2.5) return 49;
-    if (distance <= 5) return 59;
-    if (distance <= 8) return 79;
-    if (distance <= 12) return 99;
-    if (distance <= 18) return 129;
-    if (distance <= 25) return 169;
-    return Math.min(320, roundToTen(169 + (distance - 25) * 6));
+    rows.forEach(row => {
+      const input = $('[data-qty-input]', row);
+      const id = input?.dataset.qtyInput;
+      const quantity = id ? values.get(id) || 0 : 0;
+      if (!id || !quantity || seen.has(id)) return;
+      seen.add(id);
+      items.push({ name: $('b', row)?.textContent.trim() || $('h3', row)?.textContent.trim() || 'Bebida', quantity });
+    });
+
+    return items;
   }
 
-  function volumeSurcharge(total) {
-    if (total < 30) return 0;
-    if (total < 75) return 15;
-    if (total < 150) return 35;
-    if (total < 250) return 70;
-    if (total < 500) return 120;
-    return 180;
-  }
-
-  async function calculateQuote() {
-    const cp = postalCode();
-    const quantity = orderQuantity();
-    const serial = ++requestSerial;
-
-    if (!isDelivery()) {
-      Object.assign(quote, { status: 'idle', postalCode: '', quantity, fee: 0, distance: 0, label: '' });
-      queuePatch();
-      return;
-    }
-    if (quantity < SHIPPING.minimumDeliveryQuantity) {
-      Object.assign(quote, { status: 'minimum', postalCode: cp, quantity, fee: 0, distance: 0, label: `Entrega disponible desde ${SHIPPING.minimumDeliveryQuantity} bebidas` });
-      queuePatch();
-      return;
-    }
-    if (!/^\d{5}$/.test(cp)) {
-      Object.assign(quote, { status: 'postal', postalCode: cp, quantity, fee: 0, distance: 0, label: 'Escribe un CP de 5 dígitos' });
-      queuePatch();
-      return;
-    }
-
-    Object.assign(quote, { status: 'loading', postalCode: cp, quantity, fee: 0, distance: 0, label: 'Calculando…' });
-    queuePatch();
-
-    try {
-      const [origin, destination] = await Promise.all([originCoordinates(), postalCoordinates(cp)]);
-      if (serial !== requestSerial) return;
-      const distance = Math.max(0, haversineKm(origin.lat, origin.lon, destination.lat, destination.lon) * 1.18);
-      const fee = roundToTen(distanceBaseFee(distance) + volumeSurcharge(quantity));
-      Object.assign(quote, { status: 'ready', postalCode: cp, quantity, fee, distance: Math.round(distance * 10) / 10, label: 'Estimado por zona y volumen' });
-      window.antojoTrack?.('calculate_shipping_v2', { fee, quantity });
-    } catch {
-      if (serial !== requestSerial) return;
-      Object.assign(quote, { status: 'error', postalCode: cp, quantity, fee: 0, distance: 0, label: 'No pudimos calcular el envío' });
-    }
-    queuePatch();
-  }
-
-  function scheduleQuote(delay = 260) {
-    clearTimeout(calculateTimer);
-    calculateTimer = setTimeout(calculateQuote, delay);
+  function currentOrder(shipping = 0) {
+    return Pricing.quote({
+      quantity: quantityTotal(),
+      personalized: isPersonalized(),
+      shipping
+    });
   }
 
   function rowByLabel(pattern) {
-    return $$('.selection-total-row').find(row => pattern.test(row.querySelector('span')?.textContent || ''));
+    return $$('.selection-total-row').find(row => pattern.test($('span', row)?.textContent || ''));
   }
 
-  function patchSummary() {
-    const selectionBar = $('#selectionBar');
-    document.body.classList.toggle('has-mobile-selection', Boolean(selectionBar?.classList.contains('is-visible')));
-    if (!isDelivery()) return;
+  function patchPackageCards() {
+    $$('.package-card[data-package]').forEach(card => {
+      const quantity = Pricing.normalizeQuantity(card.dataset.package);
+      const price = Pricing.unitPrice(quantity);
+      const priceNode = $('b', card);
+      if (priceNode) setText(priceNode, `$${price} c/u · personalizadas +$${Pricing.PERSONALIZATION_UNIT_PRICE}`);
+    });
+  }
 
-    const quantity = orderQuantity();
-    const unitPrice = standardUnitPrice(quantity) + (isPersonalized() ? 10 : 0);
-    const subtotal = quantity * unitPrice;
+  function patchStaticPricing() {
+    $$('.product-row__price').forEach(node => setText(node, '$65 individual · desde $50 por volumen'));
+
+    const pricingAnswer = $$('.faq-list details').find(detail => /precio por volumen/i.test($('summary', detail)?.textContent || ''))?.querySelector('p');
+    if (pricingAnswer) {
+      setText(pricingAnswer, 'El precio se calcula sobre la cantidad total: 1 a 29 bebidas en $65 c/u; 30 a 59 en $60; 60 a 149 en $55; 150 a 199 en $54; 200 a 299 en $53; 300 a 499 en $52; y 500 o más en $50. La personalización sencilla suma $10 por lata desde 50 piezas.');
+    }
+  }
+
+  function patchSelection() {
+    patchPackageCards();
+    patchStaticPricing();
+
+    const total = quantityTotal();
+    const shipping = isDelivery() && deliveryQuote.status === 'ready' ? deliveryQuote.fee : 0;
+    const order = currentOrder(shipping);
+    const baseRow = rowByLabel(/^Precio base por bebida/);
+    const personalizationRow = rowByLabel(/^Personalización/);
+    const finalRow = rowByLabel(/^Precio final por bebida/);
     const shippingRow = rowByLabel(/^Envío|^Entrega|^Recolección/);
     const totalRow = $('.selection-total-row--strong');
     const note = $('.selection-note');
     const postalHelp = $('.postal-field small');
     const sendButton = $('[data-send-selection]');
-    let shippingText = 'Por calcular';
-    let total = subtotal;
-    let blocked = false;
 
-    if (quote.status === 'minimum') {
-      shippingText = `Mínimo ${SHIPPING.minimumDeliveryQuantity} bebidas`;
-      blocked = true;
-      setText(postalHelp, `La entrega a domicilio está disponible desde ${SHIPPING.minimumDeliveryQuantity} bebidas. Pedidos menores pueden recogerse sin costo.`);
-      const missing = Math.max(0, SHIPPING.minimumDeliveryQuantity - quantity);
-      setText(note, `Agrega ${missing} bebida${missing === 1 ? '' : 's'} más para habilitar entrega, o selecciona recolección.`);
-    } else if (quote.status === 'postal') {
-      shippingText = 'Escribe tu CP';
-      blocked = true;
-      setText(postalHelp, 'Escribe un código postal de 5 dígitos para calcular la entrega desde nuestro punto de salida.');
-    } else if (quote.status === 'loading') {
-      shippingText = 'Calculando…';
-      blocked = true;
-      setText(postalHelp, 'Estamos calculando una tarifa estimada según zona y volumen.');
-    } else if (quote.status === 'ready') {
-      shippingText = `$${quote.fee} MXN`;
-      total += quote.fee;
-      setText(postalHelp, `${quote.label} · ${quote.distance} km operativos aprox. · se confirma antes del cobro.`);
-      setText(note, 'La entrega se estima desde nuestro punto de salida y se confirma antes del cobro. Pedidos menores a 10 bebidas pueden recogerse sin costo.');
-    } else if (quote.status === 'error') {
-      shippingText = 'Por confirmar';
-      blocked = true;
-      setText(postalHelp, 'No pudimos calcular este CP. Te ayudamos a confirmarlo por WhatsApp.');
+    if (baseRow) setText($('b', baseRow), order.baseUnitPrice ? `$${order.baseUnitPrice}` : '—');
+    if (personalizationRow) setText($('b', personalizationRow), order.personalized ? `+$${Pricing.PERSONALIZATION_UNIT_PRICE} c/u` : 'No incluida');
+    if (finalRow) setText($('b', finalRow), order.finalUnitPrice ? `$${order.finalUnitPrice}` : '—');
+
+    let shippingLabel = isDelivery() ? 'Envío estimado' : 'Recolección WTC';
+    let shippingValue = isDelivery() ? 'Por calcular' : '$0';
+    let blocked = total === 0;
+
+    if (isDelivery()) {
+      if (deliveryQuote.status === 'minimum') {
+        shippingValue = `Mínimo ${Pricing.DELIVERY_MINIMUM} bebidas`;
+        blocked = true;
+        setText(postalHelp, `La entrega está disponible desde ${Pricing.DELIVERY_MINIMUM} bebidas. Pedidos menores pueden recogerse sin costo.`);
+        setText(note, `Agrega ${Math.max(0, Pricing.DELIVERY_MINIMUM - total)} bebidas más o selecciona recolección en WTC.`);
+      } else if (deliveryQuote.status === 'postal') {
+        shippingValue = 'Escribe tu CP';
+        blocked = true;
+        setText(postalHelp, 'Escribe un código postal de 5 dígitos para calcular la entrega.');
+      } else if (deliveryQuote.status === 'loading') {
+        shippingValue = 'Calculando…';
+        blocked = true;
+        setText(postalHelp, 'Calculando tarifa por zona y volumen…');
+      } else if (deliveryQuote.status === 'ready') {
+        shippingValue = `$${deliveryQuote.fee} MXN`;
+        setText(postalHelp, `${deliveryQuote.label} · ${deliveryQuote.distance} km operativos aprox. · se confirma antes del cobro.`);
+        setText(note, 'La tarifa es estimada y se confirma antes del cobro. No absorbemos automáticamente traslados largos, estacionamiento o casetas.');
+      } else if (deliveryQuote.status === 'error') {
+        shippingValue = 'Por confirmar';
+        setText(postalHelp, deliveryQuote.label || 'No pudimos calcular el envío. Lo confirmamos por WhatsApp.');
+        setText(note, 'Puedes enviar el pedido; el costo de entrega quedará pendiente de confirmación.');
+      }
+    } else {
+      setText(note, 'Recoger en WTC no agrega costo. La ubicación y horario se confirman antes de producir.');
     }
 
     if (shippingRow) {
-      setText(shippingRow.querySelector('span'), 'Envío estimado');
-      setText(shippingRow.querySelector('b'), shippingText);
+      setText($('span', shippingRow), shippingLabel);
+      setText($('b', shippingRow), shippingValue);
     }
-    setText(totalRow?.querySelector('b'), `$${total.toLocaleString('es-MX')} MXN`);
+    if (totalRow) setText($('b', totalRow), `$${order.total.toLocaleString('es-MX')} MXN`);
     if (sendButton) {
-      sendButton.disabled = blocked || quantity === 0;
-      setText(sendButton, quote.status === 'minimum' ? `Entrega desde ${SHIPPING.minimumDeliveryQuantity} bebidas` : 'Continuar por WhatsApp');
+      sendButton.disabled = blocked;
+      setText(sendButton, 'Confirmar pedido en WhatsApp');
     }
 
-    if (selectionBar?.classList.contains('is-visible')) {
-      const text = selectionBar.querySelector('p');
-      if (quote.status === 'ready') setHtml(text, `<b>${quantity} bebidas · $${unitPrice} c/u</b>Envío $${quote.fee} · Total $${total.toLocaleString('es-MX')}`);
-      else if (quote.status === 'minimum') setHtml(text, `<b>${quantity} bebidas · $${unitPrice} c/u</b>Entrega desde ${SHIPPING.minimumDeliveryQuantity} bebidas · recolección sin costo`);
+    const bar = $('#selectionBar');
+    if (bar?.classList.contains('is-visible')) {
+      const copy = $('p', bar);
+      const method = isDelivery()
+        ? deliveryQuote.status === 'ready' ? `Envío $${deliveryQuote.fee}` : 'Envío por confirmar'
+        : 'Recolección WTC';
+      if (copy) copy.innerHTML = `<b>${total} ${total === 1 ? 'bebida' : 'bebidas'} · $${order.finalUnitPrice} c/u</b>${method} · Total $${order.total.toLocaleString('es-MX')}`;
     }
   }
 
@@ -277,79 +185,173 @@
     patchQueued = true;
     requestAnimationFrame(() => {
       patchQueued = false;
-      patchSummary();
+      patchSelection();
+      patchEventEstimate();
     });
   }
 
-  function selectedItems() {
-    return $$('.selection-item').map(item => ({
-      name: item.querySelector('b')?.textContent.trim() || 'Bebida',
-      quantity: Number(item.querySelector('[data-qty-input]')?.value || 0)
-    })).filter(item => item.quantity > 0);
+  async function calculateDeliveryQuote() {
+    const quantity = quantityTotal();
+    const personalized = isPersonalized();
+    const cp = postalCode();
+    const serial = ++requestSerial;
+
+    if (!isDelivery()) {
+      Object.assign(deliveryQuote, { status: 'idle', postalCode: '', quantity, personalized, fee: 0, distance: 0, label: '' });
+      queuePatch();
+      return;
+    }
+    if (quantity < Pricing.DELIVERY_MINIMUM) {
+      Object.assign(deliveryQuote, { status: 'minimum', postalCode: cp, quantity, personalized, fee: 0, distance: 0, label: '' });
+      queuePatch();
+      return;
+    }
+    if (!/^\d{5}$/.test(cp)) {
+      Object.assign(deliveryQuote, { status: 'postal', postalCode: cp, quantity, personalized, fee: 0, distance: 0, label: '' });
+      queuePatch();
+      return;
+    }
+
+    Object.assign(deliveryQuote, { status: 'loading', postalCode: cp, quantity, personalized, fee: 0, distance: 0, label: '' });
+    queuePatch();
+
+    try {
+      const parameters = new URLSearchParams({ postalCode: cp, quantity: String(quantity), personalized: personalized ? '1' : '0' });
+      const response = await fetch(`/api/quote?${parameters.toString()}`, { headers: { Accept: 'application/json' } });
+      const payload = await response.json();
+      if (serial !== requestSerial) return;
+      if (!response.ok || !payload.ok) throw new Error(payload.error || 'No disponible');
+      Object.assign(deliveryQuote, {
+        status: 'ready',
+        postalCode: cp,
+        quantity,
+        personalized,
+        fee: Number(payload.order?.shippingFee) || 0,
+        distance: Number(payload.distanceKm) || 0,
+        label: payload.source === 'postal-api' ? 'Calculado por zona y volumen' : 'Estimado por zona y volumen'
+      });
+      window.antojoTrack?.('calculate_shipping_server', { fee: deliveryQuote.fee, quantity });
+    } catch (error) {
+      if (serial !== requestSerial) return;
+      Object.assign(deliveryQuote, {
+        status: 'error',
+        postalCode: cp,
+        quantity,
+        personalized,
+        fee: 0,
+        distance: 0,
+        label: error?.message || 'No pudimos calcular el envío.'
+      });
+    }
+    queuePatch();
   }
 
-  function ownWhatsAppMessage() {
-    const quantity = orderQuantity();
-    const unitPrice = standardUnitPrice(quantity) + (isPersonalized() ? 10 : 0);
-    const subtotal = quantity * unitPrice;
-    const total = subtotal + quote.fee;
-    return `Hola, quiero pedir ANTOJO.\n\nMi selección:\n${selectedItems().map(item => `${item.quantity} × ${item.name}`).join('\n')}\n\nTotal: ${quantity} bebidas\nPresentación: ${isPersonalized() ? 'Personalizada (+$10 c/u)' : 'Lata ANTOJO.'}\nPrecio por bebida: $${unitPrice}\nSubtotal: $${subtotal.toLocaleString('es-MX')} MXN\nEntrega a domicilio: CP ${quote.postalCode}\nEnvío estimado: $${quote.fee} MXN\nTotal estimado: $${total.toLocaleString('es-MX')} MXN\n\n¿Me ayudan a confirmar disponibilidad, tarifa y total final antes del cobro?`;
+  function scheduleDeliveryQuote(delay = 260) {
+    clearTimeout(quoteTimer);
+    quoteTimer = setTimeout(calculateDeliveryQuote, delay);
+  }
+
+  function orderMessage() {
+    const shipping = isDelivery() && deliveryQuote.status === 'ready' ? deliveryQuote.fee : 0;
+    const order = currentOrder(shipping);
+    const deliveryCopy = isDelivery()
+      ? `A domicilio · CP ${postalCode()}\nEnvío: ${deliveryQuote.status === 'ready' ? `$${shipping} MXN (estimado)` : 'por confirmar'}`
+      : 'Recolección en WTC · $0';
+
+    return `Hola, quiero confirmar un pedido de ANTOJO.\n\nMi selección:\n${selectedItems().map(item => `${item.quantity} × ${item.name}`).join('\n')}\n\nTotal: ${order.quantity} bebidas\nPrecio base: $${order.baseUnitPrice} c/u\nPersonalización: ${order.personalized ? `+$${Pricing.PERSONALIZATION_UNIT_PRICE} c/u` : 'No incluida'}\nPrecio final: $${order.finalUnitPrice} c/u\nSubtotal bebidas: $${order.drinkSubtotal.toLocaleString('es-MX')} MXN\nEntrega: ${deliveryCopy}\nTotal estimado: $${order.total.toLocaleString('es-MX')} MXN\n\n¿Me ayudan a confirmar sabores, disponibilidad, entrega y total final antes del cobro?`;
   }
 
   function openWhatsApp(message) {
-    const url = `https://wa.me/${SHIPPING.whatsappNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     const popup = window.open(url, '_blank', 'noopener,noreferrer');
     if (!popup) window.location.href = url;
   }
 
-  function bindShippingOverride() {
+  function patchEventEstimate() {
+    const guests = Number($('#guestCount')?.value || 0);
+    const servings = Number($('#servings')?.value || 1);
+    const quantity = Math.ceil(guests * servings);
+    const personalized = Boolean($('#personalized')?.checked);
+    const order = Pricing.quote({ quantity, personalized });
+    const summary = $('#eventSummary span');
+    if (summary) summary.innerHTML = `${guests} personas · ${servings} bebida${servings === 1 ? '' : 's'} por persona<br>${order.personalized ? `Personalizadas · $${order.finalUnitPrice} c/u` : `ANTOJO. · $${order.finalUnitPrice} c/u`} · ${$('#eventDate')?.value || 'Fecha por definir'}`;
+  }
+
+  function eventMessage() {
+    const guests = Number($('#guestCount')?.value || 0);
+    const servings = Number($('#servings')?.value || 1);
+    const quantity = Math.ceil(guests * servings);
+    const personalized = Boolean($('#personalized')?.checked);
+    const order = Pricing.quote({ quantity, personalized });
+    const type = $('[data-choice-group="eventType"] button.is-active')?.dataset.value || '';
+    const name = String($('#contactName')?.value || '').trim();
+
+    if (!type) return { error: 'Elige el tipo de evento.' };
+    if (personalized && !Pricing.personalizationAllowed(quantity)) return { error: `La personalización está disponible desde ${Pricing.PERSONALIZATION_MINIMUM} piezas.` };
+    if (name.length < 2) return { error: 'Escribe tu nombre para dar seguimiento.' };
+
+    return {
+      message: `Hola, quiero cotizar un evento con ANTOJO.\n\nNombre: ${name}\nTipo de evento: ${type}\nPersonas: ${guests}\nCantidad sugerida: ${quantity} latas\nPrecio base estimado: $${order.baseUnitPrice} c/u\nPresentación: ${order.personalized ? `Personalizada (+$${Pricing.PERSONALIZATION_UNIT_PRICE} c/u)` : 'Lata ANTOJO.'}\nPrecio final estimado: $${order.finalUnitPrice} c/u\nFecha: ${$('#eventDate')?.value || 'Por definir'}\nLugar: ${String($('#eventPlace')?.value || '').trim() || 'Por definir'}\nNotas: ${String($('#eventNotes')?.value || '').trim() || 'Sin notas adicionales'}\n\n¿Me ayudan a confirmar sabores, logística, envío, precio y disponibilidad?`
+    };
+  }
+
+  function bind() {
     document.addEventListener('click', event => {
       const send = event.target.closest?.('[data-send-selection]');
-      if (send && isDelivery()) {
+      if (send) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        const quantity = orderQuantity();
-        if (quantity < SHIPPING.minimumDeliveryQuantity) {
-          toast(`La entrega a domicilio está disponible desde ${SHIPPING.minimumDeliveryQuantity} bebidas. Para pedidos menores, selecciona recolección sin costo.`);
-          return;
-        }
-        if (!/^\d{5}$/.test(postalCode())) {
+        const quantity = quantityTotal();
+        if (!quantity) return toast('Agrega al menos una bebida para continuar.');
+        if (isPersonalized() && !Pricing.personalizationAllowed(quantity)) return toast(`La personalización está disponible desde ${Pricing.PERSONALIZATION_MINIMUM} bebidas.`);
+        if (isDelivery() && quantity < Pricing.DELIVERY_MINIMUM) return toast(`La entrega está disponible desde ${Pricing.DELIVERY_MINIMUM} bebidas. También puedes recoger en WTC.`);
+        if (isDelivery() && !/^\d{5}$/.test(postalCode())) {
           toast('Escribe un código postal válido de 5 dígitos.');
           $('#orderPostalCode')?.focus();
           return;
         }
-        if (quote.status !== 'ready' || quote.postalCode !== postalCode() || quote.quantity !== quantity) {
-          toast('Estamos actualizando el costo de envío. Intenta de nuevo en un momento.');
-          scheduleQuote(0);
-          return;
-        }
-        window.antojoTrack?.('send_order_whatsapp_shipping_v2', { fee: quote.fee, quantity });
-        openWhatsApp(ownWhatsAppMessage());
+        if (isDelivery() && deliveryQuote.status === 'loading') return toast('Estamos terminando de calcular el envío.');
+        window.antojoTrack?.('confirm_order_whatsapp', { quantity, delivery: isDelivery() });
+        openWhatsApp(orderMessage());
         return;
       }
-      if (event.target.closest?.('[data-fulfillment], [data-qty-id], [data-package], [data-clear-selection]')) setTimeout(() => scheduleQuote(), 40);
+
+      const eventNext = event.target.closest?.('#eventNext');
+      if (eventNext && /whatsapp/i.test(eventNext.textContent)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const result = eventMessage();
+        if (result.error) return toast(result.error);
+        openWhatsApp(result.message);
+        return;
+      }
+
+      if (event.target.closest?.('[data-fulfillment], [data-package], [data-qty-id], [data-clear-selection]')) {
+        setTimeout(() => scheduleDeliveryQuote(40), 50);
+      }
     }, true);
 
     document.addEventListener('input', event => {
-      if (event.target.matches('#orderPostalCode')) scheduleQuote();
+      if (event.target.matches('#orderPostalCode, [data-qty-input]')) scheduleDeliveryQuote();
+      if (event.target.matches('#guestCount, #servings, #eventDate')) queuePatch();
     }, true);
+
     document.addEventListener('change', event => {
-      if (event.target.matches('[data-qty-input], #orderPersonalized')) scheduleQuote();
+      if (event.target.matches('#orderPersonalized, [data-qty-input]')) scheduleDeliveryQuote(80);
+      if (event.target.matches('#personalized, #servings, #eventDate')) queuePatch();
     }, true);
 
     const observer = new MutationObserver(queuePatch);
-    const summary = $('#selectionSummary');
-    const bar = $('#selectionBar');
-    if (summary) observer.observe(summary, { childList: true, subtree: true });
-    if (bar) observer.observe(bar, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('hashchange', () => setTimeout(() => { queuePatch(); scheduleQuote(); }, 80));
+    ['#selectionSummary', '#selectionBar', '#packageOptions', '#productList', '#eventSummary'].forEach(selector => {
+      const node = $(selector);
+      if (node) observer.observe(node, { childList: true, subtree: true });
+    });
   }
 
   function start() {
-    injectMobileStyles();
-    bindShippingOverride();
+    bind();
     queuePatch();
-    scheduleQuote(120);
+    scheduleDeliveryQuote(0);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
